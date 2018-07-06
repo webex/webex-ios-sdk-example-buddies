@@ -44,4 +44,4 @@ Here are the steps to setup Xcode project using [CocoaPods](http://cocoapods.org
     ```
 # Kitchensink
 Here is another demo app-"Kitchensink", which is more focus on simply implementing codes and functionalities.
-[GitHub-Kitchensink](https://sqbu-github.cisco.com/SDK4Spark/webex-ios-sdk-example) 
+[GitHub-Kitchensink](https://github.com/webex/webex-ios-sdk-example) 
