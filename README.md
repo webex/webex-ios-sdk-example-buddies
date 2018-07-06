@@ -4,10 +4,10 @@ Buddies is a Demo Application that shows how to build a production App with Webe
 
 ## Screenshots 
 <ul>
-<img src="https://sqbu-github.cisco.com/SDK4Spark/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_4.jpg" width="22%" height="25%">
-<img src="https://sqbu-github.cisco.com/SDK4Spark/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_2.jpg" width="22%" height="25%">
-<img src="https://sqbu-github.cisco.com/SDK4Spark/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_3.jpg" width="22%" height="25%">
-<img src="https://sqbu-github.cisco.com/SDK4Spark/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_1.jpg" width="22%" height="25%">
+<img src="https://github.com/webex/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_4.jpg" width="22%" height="25%">
+<img src="https://github.com/webex/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_2.jpg" width="22%" height="25%">
+<img src="https://github.com/webex/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_3.jpg" width="22%" height="25%">
+<img src="https://github.com/webex/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_1.jpg" width="22%" height="25%">
 </ul>
 
 1. ScreenShot-1: Calling people/room Page.
