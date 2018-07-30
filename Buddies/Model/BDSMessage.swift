@@ -41,7 +41,7 @@ class BDSMessage: NSObject {
     
     public var personEmail: EmailAddress?
     
-    public var roomId: String?
+    public var spaceId: String?
     
     public var text: String?
     
@@ -59,7 +59,7 @@ class BDSMessage: NSObject {
     
     public var messageState: MessageState?
     
-    public var localGroupId: String? //GroupId contain witch Room it is involved in
+    public var localGroupId: String? //GroupId contain witch Space it is involved in
     
     public var mentionList: [Mention]?
     
@@ -67,8 +67,8 @@ class BDSMessage: NSObject {
     
     convenience init?(messageModel: Message) {
         self.init()
-        if let roomId = messageModel.roomId{
-            self.roomId = roomId
+        if let spaceId = messageModel.spaceId{
+            self.spaceId = spaceId
         }
         if let messageId = messageModel.id{
             self.messageId = messageId

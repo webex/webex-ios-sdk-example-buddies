@@ -21,10 +21,12 @@
 import UIKit
 import WebexSDK
 
-class RoomListViewController: BaseViewController,UITableViewDelegate,UITableViewDataSource {
+class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableViewDataSource {
 
     // MARK: - UI variables
     private var tableView: UITableView?
+    private let maxSpaceCount = 6
+    private var spaceList: Array<SpaceModel> = Array<SpaceModel>()
     
     // MARK: - Life Circle
     override init(mainViewController: MainViewController) {
@@ -34,35 +36,38 @@ class RoomListViewController: BaseViewController,UITableViewDelegate,UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = Constants.Color.Theme.Background
-        self.title = "Rooms"
-        self.setUptableView()
+        self.title = "Spaces"
         self.updateNavigationItems()
+        self.webexListSpaces()
     }
     
-    // MARK: - WebexSDK: listing rooms / delete rooms
-    func webexListRooms(){
-        WebexSDK?.rooms.list(completionHandler: { (response: ServiceResponse<[Room]>) in
+    // MARK: - WebexSDK: listing spaces / delete spaces
+    func webexListSpaces(){
+        acitivtyIndicator.show(title: "Loading...", at: (self.view)!, offset: 0, size: 156, allowUserInteraction: false)
+        WebexSDK?.spaces.list(max: maxSpaceCount, type: SpaceType.group){ (response: ServiceResponse<[Space]>) in
+            self.acitivtyIndicator.hide()
             switch response.result {
-            case .success(let roomList):
-                for room in roomList{
-                    let roomModel = RoomModel(room: room)
-                    User.CurrentUser.addLocalRoom(room: roomModel!)
-                    self.tableView?.reloadData()
-                }
+            case .success(let spaceList):
+                spaceList.forEach({ space in
+                    let model = SpaceModel(space: space)
+                    self.spaceList.append(model!)
+                })
+                self.setUptableView()
                 break
             case .failure:
                 break
             }
-        })
+        }
     }
-    func removeRoomAt(_ indexPath: IndexPath){
-        let roomModel = User.CurrentUser.rooms[indexPath.row]
+    
+    func removeSpaceAt(_ indexPath: IndexPath){
+        let spaceModel = User.CurrentUser.spaces[indexPath.row]
         KTActivityIndicator.singleton.show(title: "Loading")
-        WebexSDK?.rooms.delete(roomId: roomModel.roomId) { (response: ServiceResponse<Any>) in
+        WebexSDK?.spaces.delete(spaceId: spaceModel.spaceId) { (response: ServiceResponse<Any>) in
             KTActivityIndicator.singleton.hide()
-            User.CurrentUser.rooms.remove(at: indexPath.row)
+            User.CurrentUser.spaces.remove(at: indexPath.row)
             self.tableView?.deleteRows(at: [indexPath], with: .top)
-            User.CurrentUser.saveLocalRooms()
+            User.CurrentUser.saveLocalSpaces()
         }
     }
     
@@ -77,90 +82,69 @@ class RoomListViewController: BaseViewController,UITableViewDelegate,UITableView
             self.view.addSubview(self.tableView!)
         }
     }
-    private func updateNavigationItems() {
-        var avator: UIImageView?
-        if(User.CurrentUser.loginType == .User){
-            avator = User.CurrentUser.avator
-            if let avator = avator {
-                avator.setCorner(Int(avator.frame.height / 2))
-            }
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(createNewRoom))
-        }else {
-            avator = UIImageView(frame: CGRect(0, 0, 28, 28))
-            avator?.image = UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 28, height: 28))
-            self.navigationItem.rightBarButtonItem = nil
-        }
-        if let avator = avator {
-            let singleTap = UITapGestureRecognizer(target: self, action: #selector(showUserOptionView))
-            singleTap.numberOfTapsRequired = 1;
-            avator.isUserInteractionEnabled = true
-            avator.addGestureRecognizer(singleTap)
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: avator)
-        }
-    }
-    
+
     func messageNotiReceived(noti: Notification){
         self.tableView?.reloadData()
     }
     
     // MARK: UITableView Delegate
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return CGFloat(roomTableCellHeight)
+        return CGFloat(spaceTableCellHeight)
     }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if(User.CurrentUser.loginType == .Guest){
             return 0
         }
-        return (User.CurrentUser.localRoomCount)
+        return spaceList.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let index = indexPath.row
-        let roomModel = User.CurrentUser.rooms[index]
-        let cell = RoomListTableCell(roomModel: roomModel)
+        let spaceModel = spaceList[index]
+        let cell = SpaceListTableCell(spaceModel: spaceModel)
         return cell
-        
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let index = indexPath.row
-        let roomModel = User.CurrentUser.rooms[index]
-        let roomVC = RoomViewController(room: roomModel)
-        if let roomGroup = User.CurrentUser[(roomModel.localGroupId)]{
-            if(roomGroup.unReadedCount>0){
-                roomGroup.unReadedCount = 0
+        let spaceModel = spaceList[index]
+        let spaceVC = SpaceViewController(space: spaceModel)
+        if let spaceGroup = User.CurrentUser[(spaceModel.localGroupId)]{
+            if(spaceGroup.unReadedCount>0){
+                spaceGroup.unReadedCount = 0
                 self.tableView?.reloadData()
             }
         }
-        self.navigationController?.pushViewController(roomVC, animated: true)
+        self.navigationController?.pushViewController(spaceVC, animated: true)
     }
+    
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         
     }
+    
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
         let tableActions = UITableViewRowAction(style: .destructive, title: "Delete") { (rowAction, indexPath) in
-            self.removeRoomAt(indexPath)
+            self.removeSpaceAt(indexPath)
         }
         return [tableActions]
     }
 
-    
-    @objc private func createNewRoom(){
+    @objc private func createNewSpace(){
         
-        let createRoomView = CreateRoomView(frame: CGRect(x: 0, y: 0, width: Constants.Size.screenWidth, height: Constants.Size.screenHeight))
-        createRoomView.roomCreatedBlock = { (createdRoom : RoomModel, isNew : Bool) in
+        let createSpaceView = CreateSpaceView(frame: CGRect(x: 0, y: 0, width: Constants.Size.screenWidth, height: Constants.Size.screenHeight))
+        createSpaceView.spaceCreatedBlock = { (createdSpace : SpaceModel, isNew : Bool) in
             if(isNew){
-                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
+                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
                 self.tableView?.reloadData()
             }
 
-            let roomVC = RoomViewController(room: createdRoom)
-            self.navigationController?.pushViewController(roomVC, animated: true)
+            let spaceVC = SpaceViewController(space: createdSpace)
+            self.navigationController?.pushViewController(spaceVC, animated: true)
         }
-        createRoomView.popUpOnWindow()
+        createSpaceView.popUpOnWindow()
     }
-    
     
     // MARK: BaseViewController Functions Override
     override func updateViewController() {
@@ -168,14 +152,9 @@ class RoomListViewController: BaseViewController,UITableViewDelegate,UITableView
         self.tableView?.reloadData()
     }
     
-    @objc private func showUserOptionView() {
-        self.mainController?.slideInUserOptionView()
-    }
-    
     @objc private func reloadTableData(){
         self.tableView?.reloadData()
     }
-    
     
     // MARK: other functions
     override func didReceiveMemoryWarning() {

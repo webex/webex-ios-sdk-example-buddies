@@ -88,7 +88,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
         
         /* Save User Info on Local */
         if(User.CurrentUser.loginType != .None){
-            User.CurrentUser.saveLocalRooms()
+            User.CurrentUser.saveLocalSpaces()
             User.CurrentUser.saveGroupsToLocal()
         }
     }

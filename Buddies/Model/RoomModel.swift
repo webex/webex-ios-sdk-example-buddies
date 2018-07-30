@@ -22,57 +22,57 @@ import UIKit
 import WebexSDK
 
 /*
- -note: Buddies use RoomModel to wrap room model from remote server
+ -note: Buddies use SpaceModel to wrap space model from remote server
  */
 
-class RoomModel: NSObject,NSCoding {
+class SpaceModel: NSObject,NSCoding {
     
-    var roomId: String //roomId reprents remote roomId
+    var spaceId: String //spaceId reprents remote spaceId
     
     var localGroupId: String //GroupId contain witch Group involved in
     
     var title: String?
 
-    var type: RoomType?  ///  "group" Group room among multiple people, "direct"  1-to-1 room between two people
+    var type: SpaceType?  ///  "group" Group space among multiple people, "direct"  1-to-1 space between two people
     
     var isLocked: Bool? = false
     
     var teamId: String?
     
-    var roomMembers: [Contact]?
+    var spaceMembers: [Contact]?
 
-    init(roomId : String) {
-        self.roomId = roomId
+    init(spaceId : String) {
+        self.spaceId = spaceId
         self.localGroupId = ""
     }
     
     init(groupModel: Group){
-        self.roomId = ""
+        self.spaceId = ""
         self.localGroupId = groupModel.groupId!
         self.title = groupModel.groupName
-        self.roomMembers = groupModel.groupMembers
+        self.spaceMembers = groupModel.groupMembers
     }
     
-    convenience init?(room: Room) {
-        guard let roomId = room.id else {
+    convenience init?(space: Space) {
+        guard let spaceId = space.id else {
             return nil
         }
-        self.init(roomId: roomId)
-        if let title = room.title{
+        self.init(spaceId: spaceId)
+        if let title = space.title{
             self.title = title
         }
-        if let type = room.type{
+        if let type = space.type{
             self.type = type
         }
-        if let isLocked = room.isLocked{
+        if let isLocked = space.isLocked{
             self.isLocked = isLocked
         }
-        if let teamId = room.teamId{
+        if let teamId = space.teamId{
             self.teamId = teamId
         }
     }
     public func encode(with aCoder: NSCoder){
-        aCoder.encode(self.roomId, forKey: "RoomId")
+        aCoder.encode(self.spaceId, forKey: "SpaceId")
         aCoder.encode(self.localGroupId, forKey: "localGroupId")
         
         if self.type != nil{
@@ -90,10 +90,10 @@ class RoomModel: NSObject,NSCoding {
     }
     
     public required init?(coder aDecoder: NSCoder){
-        self.roomId = aDecoder.decodeObject(forKey: "RoomId") as! String
+        self.spaceId = aDecoder.decodeObject(forKey: "SpaceId") as! String
         self.localGroupId = aDecoder.decodeObject(forKey: "localGroupId") as! String
         self.title = aDecoder.decodeObject(forKey: "title") as? String
-        self.type = RoomType(rawValue: (aDecoder.decodeObject(forKey: "type") as? String)!)
+        self.type = SpaceType(rawValue: (aDecoder.decodeObject(forKey: "type") as? String)!)
         self.isLocked = aDecoder.decodeObject(forKey: "isLocked") as? Bool
         self.teamId = aDecoder.decodeObject(forKey: "teamId") as? String
     }

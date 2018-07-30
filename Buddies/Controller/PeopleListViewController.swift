@@ -90,10 +90,8 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
     }
 
     // MARK: WebexSDK: CALL Function Implementation
-    
     /* webexSDK callwith contact model */
     public func makeWebexCall(_ contact: Contact){
-    
         let callVC = BuddiesCallViewController(callee: contact)
         self.present(callVC, animated: true) {
             callVC.beginCall(isVideo: true)
@@ -110,12 +108,9 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
             
             let attr = NSDictionary(object: Constants.Font.InputBox.Button, forKey: NSAttributedStringKey.font as NSCopying)
             self.segmentControll?.setTitleTextAttributes(attr as [NSObject : AnyObject] , for: .normal)
-            
             self.segmentControll?.selectedSegmentIndex = 0
             self.navigationItem.titleView = segmentControll
-            
             let rightNavBarButton = UIBarButtonItem(image: UIImage(named: "icon_close"), style: .done, target: self, action: #selector(dismissVC))
-
             self.navigationItem.rightBarButtonItem = rightNavBarButton
         }
     }

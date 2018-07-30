@@ -357,16 +357,16 @@ class MessageTableCell: UITableViewCell {
         if(self.message.messageState == MessageState.willSend || self.message.messageState == MessageState.sendFailed){
             self.message.messageState = MessageState.willSend
             self.setUpIndicatorView()
-            if(self.message.roomId == nil || self.message.roomId?.length == 0){
+            if(self.message.spaceId == nil || self.message.spaceId?.length == 0){
                 DispatchQueue.global().async {
                     let emailStr = User.CurrentUser.loginType == UserLoginType.User ? (self.message.toPersonEmail?.toString())! : self.message.localGroupId
                     WebexSDK?.messages.post(personEmail: EmailAddress.fromString(emailStr!)!, text: self.message.text!, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):
-                            let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: self.message.localGroupId!)
-                            roomModel?.roomId = value.roomId!
-                            User.CurrentUser.saveLocalRooms()
+                            let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: self.message.localGroupId!)
+                            spaceModel?.spaceId = value.spaceId!
+                            User.CurrentUser.saveLocalSpaces()
                             self.message.messageId = value.id
                             self.message.messageState = MessageState.idle
                             break
@@ -381,7 +381,7 @@ class MessageTableCell: UITableViewCell {
             }else{
                 DispatchQueue.global().async {
                     self.message.messageState = MessageState.sending
-                    WebexSDK?.messages.post(roomId: self.message.roomId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
+                    WebexSDK?.messages.post(spaceId: self.message.spaceId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):

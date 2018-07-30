@@ -158,7 +158,7 @@ class Group: NSObject,NSCoding {
             self.groupType = .multiMember
         }
     }
-    public class func getGroupRoomId(contacts: [Contact])->String{
+    public class func getGroupSpaceId(contacts: [Contact])->String{
         if(contacts.count == 1){
             return contacts[0].email.md5
         }
@@ -169,7 +169,7 @@ class Group: NSObject,NSCoding {
         return gourpIdStr.md5
     }
     
-    public class func getGroupRoomName(contacts: [Contact])->String{
+    public class func getGroupSpaceName(contacts: [Contact])->String{
         if(contacts.count == 1){
             return contacts[0].name
         }

@@ -33,7 +33,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     private var financialAdPTF: MKTextField?
     private var customerCareTF: MKTextField?
     private var addedEmailDict: Dictionary<String,String>?
-    private var roomVC : RoomViewController?
+    private var spaceVC : SpaceViewController?
     
     // MARK : Life Circle
     override func viewDidLoad() {
@@ -479,55 +479,55 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     @objc public func makeSaprkMessage(sender: UIButton){
         let index = sender.tag - 20000
         let group = User.CurrentUser[index]!
-        let localRoomName = group.groupName
+        let localSpaceName = group.groupName
         let localGroupId = group.groupId
         if let unreadLabel = self.view.viewWithTag(index+10000){
             unreadLabel.removeFromSuperview()
         }
         group.unReadedCount = 0
-        if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
-            roomModel.title = localRoomName!
-            roomModel.roomMembers = [Contact]()
+        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId!){
+            spaceModel.title = localSpaceName!
+            spaceModel.spaceMembers = [Contact]()
             for contact in group.groupMembers{
-                roomModel.roomMembers?.append(contact)
+                spaceModel.spaceMembers?.append(contact)
             }
-            self.roomVC = RoomViewController(room: roomModel)
-            self.navigationController?.pushViewController(self.roomVC!, animated: true)
+            self.spaceVC = SpaceViewController(space: spaceModel)
+            self.navigationController?.pushViewController(self.spaceVC!, animated: true)
         }else{
             if(group.groupType == .singleMember){
-                let createdRoom = RoomModel(roomId: "")
-                createdRoom.localGroupId = group.groupId!
-                createdRoom.title = localRoomName!
-                createdRoom.type = RoomType.direct
-                createdRoom.roomMembers = [Contact]()
+                let createdSpace = SpaceModel(spaceId: "")
+                createdSpace.localGroupId = group.groupId!
+                createdSpace.title = localSpaceName!
+                createdSpace.type = SpaceType.direct
+                createdSpace.spaceMembers = [Contact]()
                 for contact in group.groupMembers{
-                    createdRoom.roomMembers?.append(contact)
+                    createdSpace.spaceMembers?.append(contact)
                 }
-                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                self.roomVC = RoomViewController(room: createdRoom)
-                self.navigationController?.pushViewController(self.roomVC!, animated: true)
+                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
+                self.spaceVC = SpaceViewController(space: createdSpace)
+                self.navigationController?.pushViewController(self.spaceVC!, animated: true)
                 return
             }
             
             KTActivityIndicator.singleton.show(title: "Loading")
-            WebexSDK?.rooms.create(title: localRoomName!, completionHandler: {(response: ServiceResponse<Room>) in
+            WebexSDK?.spaces.create(title: localSpaceName!, completionHandler: {(response: ServiceResponse<Space>) in
                 switch response.result {
                 case .success(let value):
-                    if let createdRoom = RoomModel(room: value){
-                        createdRoom.localGroupId = localGroupId!
-                        group.groupId = createdRoom.roomId
-                        createdRoom.localGroupId = createdRoom.roomId
-                        createdRoom.title = localRoomName
-                        createdRoom.type = RoomType.group
-                        createdRoom.roomMembers = [Contact]()
-                        group.groupId = createdRoom.roomId
+                    if let createdSpace = SpaceModel(space: value){
+                        createdSpace.localGroupId = localGroupId!
+                        group.groupId = createdSpace.spaceId
+                        createdSpace.localGroupId = createdSpace.spaceId
+                        createdSpace.title = localSpaceName
+                        createdSpace.type = SpaceType.group
+                        createdSpace.spaceMembers = [Contact]()
+                        group.groupId = createdSpace.spaceId
                         let threahGroup = DispatchGroup()
                         for contact in group.groupMembers{
                             DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                WebexSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                                WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
                                     switch response.result{
                                     case .success(_):
-                                        createdRoom.roomMembers?.append(contact)
+                                        createdSpace.spaceMembers?.append(contact)
                                         break
                                     case .failure(let error):
                                         KTInputBox.alert(error: error)
@@ -540,9 +540,9 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
                         threahGroup.notify(queue: DispatchQueue.global(), execute: {
                             DispatchQueue.main.async {
                                 KTActivityIndicator.singleton.hide()
-                                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                                let roomVC = RoomViewController(room: createdRoom)
-                                self.navigationController?.pushViewController(roomVC, animated: true)
+                                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
+                                let spaceVC = SpaceViewController(space: createdSpace)
+                                self.navigationController?.pushViewController(spaceVC, animated: true)
                             }
                         })
                     }
@@ -561,10 +561,10 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     
     
     public func receiveNewMessage( _ messageModel: Message){
-        if messageModel.roomType == RoomType.direct{//GROUP
-            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
-                if messageModel.personEmail == roomModel.localGroupId{
-                    roomVC.receiveNewMessage(message: messageModel)
+        if messageModel.spaceType == SpaceType.direct{//GROUP
+            if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
+                if messageModel.personEmail == spaceModel.localGroupId{
+                    spaceVC.receiveNewMessage(message: messageModel)
                     return
                 }
             }else{

@@ -23,14 +23,14 @@ import WebexSDK
 import ObjectMapper
 import Cartography
 import Photos
-class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate {
+class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate {
     
     // MARK: UI variables
     private var messageTableView: UITableView?
-    public var roomModel: RoomModel?
-    private var roomMemberTableView: UITableView?
+    public var spaceModel: SpaceModel?
+    private var spaceMemberTableView: UITableView?
     private var maskView: UIView?
-    private var roomMeberList: [Membership] = []
+    private var spaceMeberList: [Membership] = []
     private var messageList: [BDSMessage] = []
     private let messageTableViewHeight = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight-Constants.Size.navHeight-74) : (Constants.Size.screenHeight-Constants.Size.navHeight-40)
     private var tableTap: UIGestureRecognizer?
@@ -40,9 +40,9 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     private var callVC : BuddiesCallViewController?
 
     // MARK: - Life Circle
-    init(room: RoomModel){
+    init(space: SpaceModel){
         super.init()
-        self.roomModel = room
+        self.spaceModel = space
     }
     
     override func viewDidLoad() {
@@ -70,11 +70,11 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
             })
         }
     }
-    // MARK: - WebexSDK: listing member in a room
+    // MARK: - WebexSDK: listing member in a space
     func requestMessageList(){
-        if let roomId = self.roomModel?.roomId , roomId != "" {
+        if let spaceId = self.spaceModel?.spaceId , spaceId != "" {
             self.topIndicator?.startAnimating()
-            WebexSDK?.messages.list(roomId: roomId, before: nil, max: 50, mentionedPeople: nil, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
+            WebexSDK?.messages.list(spaceId: spaceId, before: nil, max: 50, mentionedPeople: nil, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
                 self.topIndicator?.stopAnimating()
                 self.updateNavigationTitle()
                 switch response.result {
@@ -82,7 +82,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                     self.messageList.removeAll()
                     for message in value{
                         let tempMessage = BDSMessage(messageModel: message)
-                        tempMessage?.localGroupId = self.roomModel?.localGroupId
+                        tempMessage?.localGroupId = self.spaceModel?.localGroupId
                         tempMessage?.messageState = MessageState.received
                         self.messageList.insert(tempMessage!, at: 0)
                     }
@@ -102,18 +102,18 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         }
     }
     
-    // MARK: - WebexSDK: listing member in a room
-    func requestRoomMemberList(){
+    // MARK: - WebexSDK: listing member in a space
+    func requestSpaceMemberList(){
         KTActivityIndicator.singleton.show(title: "Loading")
-        WebexSDK?.memberships.list(roomId: (self.roomModel?.roomId)!) { (response: ServiceResponse<[Membership]>) in
+        WebexSDK?.memberships.list(spaceId: (self.spaceModel?.spaceId)!) { (response: ServiceResponse<[Membership]>) in
             KTActivityIndicator.singleton.hide()
             switch response.result {
             case .success(let value):
-                self.roomMeberList.removeAll()
+                self.spaceMeberList.removeAll()
                 for memberShip in value{
-                    self.roomMeberList.append(memberShip)
+                    self.spaceMeberList.append(memberShip)
                 }
-                self.roomMemberTableView?.reloadData()
+                self.spaceMemberTableView?.reloadData()
                 break
             case .failure:
                 break
@@ -121,22 +121,22 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         }
     }
     
-    // MARK: - WebexSDK: post message | make call to a room
+    // MARK: - WebexSDK: post message | make call to a space
     func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil, _ menpositions:[Range<Int>]){
         let tempMessageModel = BDSMessage()
-        tempMessageModel.roomId = self.roomModel?.roomId
+        tempMessageModel.spaceId = self.spaceModel?.spaceId
         tempMessageModel.messageState = MessageState.willSend
         tempMessageModel.text = text
-        if self.roomModel?.type == RoomType.direct{
-            if let personEmail = self.roomModel?.roomMembers![0].email,
-                let personId = self.roomModel?.roomMembers![0].id{
+        if self.spaceModel?.type == SpaceType.direct{
+            if let personEmail = self.spaceModel?.spaceMembers![0].email,
+                let personId = self.spaceModel?.spaceMembers![0].id{
                 tempMessageModel.toPersonEmail = EmailAddress.fromString(personEmail)
                 tempMessageModel.toPersonId = personId
             }
         }
         tempMessageModel.personId = User.CurrentUser.id
         tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
-        tempMessageModel.localGroupId = self.roomModel?.localGroupId
+        tempMessageModel.localGroupId = self.spaceModel?.localGroupId
         if let mentions = mentionList, mentions.count>0{
             var mentionModels : [Mention] = []
             for mention in mentions{
@@ -200,8 +200,8 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     }
     
     func makeCall(isVideo: Bool){
-        if let roomModel = self.roomModel{
-            self.callVC = BuddiesCallViewController(room: roomModel)
+        if let spaceModel = self.spaceModel{
+            self.callVC = BuddiesCallViewController(space: spaceModel)
             self.present(self.callVC!, animated: true) {
                 self.callVC?.beginCall(isVideo: isVideo)
             }
@@ -215,7 +215,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         }
         let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
-        msgModel?.localGroupId = self.roomModel?.localGroupId
+        msgModel?.localGroupId = self.spaceModel?.localGroupId
         if(msgModel?.text == nil){
             msgModel?.text = ""
         }
@@ -276,7 +276,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     
     private func setUpBottomView(){
         let bottomViewWidth = Constants.Size.screenWidth
-        if let group = User.CurrentUser[(self.roomModel?.localGroupId)!]{
+        if let group = User.CurrentUser[(self.spaceModel?.localGroupId)!]{
             self.buddiesInputView = BuddiesInputView(frame: CGRect(x: 0, y: messageTableViewHeight, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!, contacts: group.groupMembers)
             self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
                 self.sendMessage(text: textStr, assetList, mentionList,mentionPositions)
@@ -299,13 +299,13 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     }
     
     private func setUpMembertableView(){
-        if(self.roomMemberTableView == nil){
+        if(self.spaceMemberTableView == nil){
             let offSetY : CGFloat = Constants.Size.screenWidth > 375 ? 20.0 : 64.0
-            self.roomMemberTableView = UITableView(frame: CGRect(Constants.Size.screenWidth,-offSetY,Constants.Size.screenWidth/4*3,Constants.Size.screenHeight+offSetY))
-            self.roomMemberTableView?.separatorStyle = .none
-            self.roomMemberTableView?.backgroundColor = Constants.Color.Theme.Background
-            self.roomMemberTableView?.delegate = self
-            self.roomMemberTableView?.dataSource = self
+            self.spaceMemberTableView = UITableView(frame: CGRect(Constants.Size.screenWidth,-offSetY,Constants.Size.screenWidth/4*3,Constants.Size.screenHeight+offSetY))
+            self.spaceMemberTableView?.separatorStyle = .none
+            self.spaceMemberTableView?.backgroundColor = Constants.Color.Theme.Background
+            self.spaceMemberTableView?.delegate = self
+            self.spaceMemberTableView?.dataSource = self
         }
     }
     
@@ -329,29 +329,29 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         self.setUpMaskView()
         self.setUpMembertableView()
         self.navigationController?.view.addSubview(self.maskView!)
-        self.navigationController?.view.addSubview(self.roomMemberTableView!)
+        self.navigationController?.view.addSubview(self.spaceMemberTableView!)
         
         UIView.animate(withDuration: 0.2, animations: { 
-            self.roomMemberTableView?.transform = CGAffineTransform(translationX: -Constants.Size.screenWidth/4*3, y: 0)
+            self.spaceMemberTableView?.transform = CGAffineTransform(translationX: -Constants.Size.screenWidth/4*3, y: 0)
             self.maskView?.alpha = 0.4
         }) { (_) in
-            self.requestRoomMemberList()
+            self.requestSpaceMemberList()
         }
         
     }
     @objc public func dismissMemberTableView(){
         UIView.animate(withDuration: 0.2, animations: {
-            self.roomMemberTableView?.transform = CGAffineTransform(translationX:0, y: 0)
+            self.spaceMemberTableView?.transform = CGAffineTransform(translationX:0, y: 0)
             self.maskView?.alpha = 0
         }) { (complete) in
             self.maskView?.removeFromSuperview()
-            self.roomMemberTableView?.removeFromSuperview()
+            self.spaceMemberTableView?.removeFromSuperview()
         }
     }
     
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if(tableView == self.roomMemberTableView){
+        if(tableView == self.spaceMemberTableView){
             return CGFloat(membershipTableCellHeight)
         }else{
             var fileCount = 0
@@ -373,17 +373,17 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         }
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(tableView == self.roomMemberTableView){
-            return self.roomMeberList.count
+        if(tableView == self.spaceMemberTableView){
+            return self.spaceMeberList.count
         }else{
             return self.messageList.count
         }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if(tableView == self.roomMemberTableView){
+        if(tableView == self.spaceMemberTableView){
             let index = indexPath.row
-            let memberModel = self.roomMeberList[index]
+            let memberModel = self.spaceMeberList[index]
             var reuseCell = tableView.dequeueReusableCell(withIdentifier: "PeopleListTableCell")
             if reuseCell != nil{
                 (reuseCell as! PeopleListTableCell).updateMembershipCell(newMemberShipModel: memberModel)
@@ -403,14 +403,15 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if(tableView == self.roomMemberTableView){
+        if(tableView == self.spaceMemberTableView){
             return 64
         }else{
             return 0
         }
     }
+    
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if(tableView == self.roomMemberTableView){
+        if(tableView == self.spaceMemberTableView){
             let headerView = UIView(frame: CGRect(x: 0, y: 0, width: Constants.Size.screenWidth/4*3, height: 64))
             headerView.backgroundColor = Constants.Color.Theme.Main
             let label = UILabel(frame: CGRect(x: 0, y: 20, width: headerView.frame.size.width, height: headerView.frame.size.height-20))
@@ -480,7 +481,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     
     // MARK: Other Functions
     private func updateNavigationTitle(){
-        self.navigationTitleLabel?.text = self.roomModel?.title != nil ? self.roomModel?.title! : "No Name"
+        self.navigationTitleLabel?.text = self.spaceModel?.title != nil ? self.spaceModel?.title! : "No Name"
     }
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

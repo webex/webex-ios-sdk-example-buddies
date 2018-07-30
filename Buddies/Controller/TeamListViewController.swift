@@ -21,7 +21,7 @@
 import UIKit
 import WebexSDK
 
-class TeamListViewController: BaseViewController,UITableViewDelegate,UITableViewDataSource {
+class TeamListViewController: HomeViewController, UITableViewDelegate, UITableViewDataSource {
 
     // MARK: - UI variables
     private var teamList: [Team] = Array()
@@ -43,7 +43,7 @@ class TeamListViewController: BaseViewController,UITableViewDelegate,UITableView
         self.requestTeamList()
     }
     
-    // MARK: - WebexSDK: listig team / create room
+    // MARK: - WebexSDK: listig team / create space
     private func requestTeamList(){
         KTActivityIndicator.singleton.show(title: "Loading")
         WebexSDK?.teams.list(max: 20) {
@@ -89,8 +89,8 @@ class TeamListViewController: BaseViewController,UITableViewDelegate,UITableView
             self.view.addSubview(self.tableView!)
         }
     }
-    private func updateNavigationItems() {
-        var avator: UIImageView?
+    
+    override func updateNavigationItems() {
         if(User.CurrentUser.loginType == .User){
             avator = User.CurrentUser.avator
             if let avator = avator {
@@ -101,14 +101,6 @@ class TeamListViewController: BaseViewController,UITableViewDelegate,UITableView
             avator = UIImageView(frame: CGRect(0, 0, 28, 28))
             avator?.image = UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 28, height: 28))
             self.navigationItem.rightBarButtonItem = nil
-        }
-        
-        if let avator = avator {
-            let singleTap = UITapGestureRecognizer(target: self, action: #selector(showUserOptionView))
-            singleTap.numberOfTapsRequired = 1;
-            avator.isUserInteractionEnabled = true
-            avator.addGestureRecognizer(singleTap)
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: avator)
         }
     }
     
@@ -167,10 +159,6 @@ class TeamListViewController: BaseViewController,UITableViewDelegate,UITableView
     override func updateViewController() {
         self.updateNavigationItems()
         self.tableView?.reloadData()
-    }
-    
-    @objc private func showUserOptionView() {
-        self.mainController?.slideInUserOptionView()
     }
     
     override func didReceiveMemoryWarning() {

@@ -21,10 +21,10 @@
 import UIKit
 import WebexSDK
 
-class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate{
+class CreateSpaceView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate{
     
     // MARK: - UI variables
-    var roomCreatedBlock: ((RoomModel, Bool)->())?
+    var spaceCreatedBlock: ((SpaceModel, Bool)->())?
     
     private var backView : UIView?
     private var addedCollectionView: UICollectionView?
@@ -33,7 +33,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
     private var segmentControll: UISegmentedControl?
     private var searchBarBackView: UIView?
     private var searchBar: UISearchBar?
-    private var roomNameTextFeild: MKTextField?
+    private var spaceNameTextFeild: MKTextField?
     private var addedContactList: [Contact] = []
     private var peopleList : [Contact] = []
     private var viewWidth = 0
@@ -47,7 +47,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
     }
     
     
-    // MARK: - WebexSDK: listing people/ create room
+    // MARK: - WebexSDK: listing people/ create space
     func requetPeopleList(searchStr: String){
         KTActivityIndicator.singleton.show(title: "Loading")
         if let email = EmailAddress.fromString(searchStr) {
@@ -89,31 +89,31 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
             }
         }
     }
-    func requestCreateRoom(){
-        let localGroupId = Group.getGroupRoomId(contacts: self.addedContactList)
-        if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId){
-            if(self.roomCreatedBlock != nil){
-                self.roomCreatedBlock!(roomModel,false)
+    func requestCreateSpace(){
+        let localGroupId = Group.getGroupSpaceId(contacts: self.addedContactList)
+        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId){
+            if(self.spaceCreatedBlock != nil){
+                self.spaceCreatedBlock!(spaceModel,false)
             }
             self.disMiss()
             return;
         }
-        var roomTitle = self.roomNameTextFeild?.text
+        var spaceTitle = self.spaceNameTextFeild?.text
         KTActivityIndicator.singleton.show(title: "Creating")
-        if(roomTitle?.length == 0){
-            roomTitle = Group.getGroupRoomName(contacts: self.addedContactList)
+        if(spaceTitle?.length == 0){
+            spaceTitle = Group.getGroupSpaceName(contacts: self.addedContactList)
         }
-        WebexSDK?.rooms.create(title: roomTitle!) { (response: ServiceResponse<Room>) in
+        WebexSDK?.spaces.create(title: spaceTitle!) { (response: ServiceResponse<Space>) in
             switch response.result {
             case .success(let value):
-                if let createdRoom = RoomModel(room: value){
+                if let createdSpace = SpaceModel(space: value){
                     let threahGroup = DispatchGroup()
                     for contact in self.addedContactList{
                         DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                            WebexSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                            WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
                                 switch response.result{
                                 case .success(_):
-                                    createdRoom.roomMembers?.append(contact)
+                                    createdSpace.spaceMembers?.append(contact)
                                     break
                                 case .failure(let error):
                                     KTInputBox.alert(error: error)
@@ -122,12 +122,12 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
                             })
                         }))
                     }
-                    createdRoom.localGroupId = localGroupId
+                    createdSpace.localGroupId = localGroupId
                     threahGroup.notify(queue: DispatchQueue.global(), execute: {
                         DispatchQueue.main.async {
                             KTActivityIndicator.singleton.hide()
-                            if(self.roomCreatedBlock != nil){
-                                self.roomCreatedBlock!(createdRoom, true)
+                            if(self.spaceCreatedBlock != nil){
+                                self.spaceCreatedBlock!(createdSpace, true)
                             }
                             self.disMiss()
                         }
@@ -179,22 +179,22 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         let titleLabel = UILabel(frame: CGRect(x: 15, y: 10, width: backViewWidth-30, height: 30))
         titleLabel.font = Constants.Font.InputBox.Title
         titleLabel.textColor = Constants.Color.Theme.DarkControl
-        titleLabel.text = "New Room"
+        titleLabel.text = "New Space"
         titleLabel.textAlignment = .center
         self.backView?.addSubview(titleLabel)
         
-        self.roomNameTextFeild = MKTextField(frame: CGRect(x: 30, y: 40, width: backViewWidth-60, height: 40))
-        self.roomNameTextFeild?.delegate = self;
-        self.roomNameTextFeild?.textAlignment = .center
-        self.roomNameTextFeild?.tintColor = Constants.Color.Theme.Main;
-        self.roomNameTextFeild?.layer.borderColor = UIColor.clear.cgColor
-        self.roomNameTextFeild?.font = Constants.Font.InputBox.Input
-        self.roomNameTextFeild?.bottomBorderEnabled = true;
-        self.roomNameTextFeild?.floatingPlaceholderEnabled = false
-        self.roomNameTextFeild?.rippleEnabled = false;
-        self.roomNameTextFeild?.placeholder = "input room name"
-        self.roomNameTextFeild?.returnKeyType = .done;
-        self.backView?.addSubview(self.roomNameTextFeild!)
+        self.spaceNameTextFeild = MKTextField(frame: CGRect(x: 30, y: 40, width: backViewWidth-60, height: 40))
+        self.spaceNameTextFeild?.delegate = self;
+        self.spaceNameTextFeild?.textAlignment = .center
+        self.spaceNameTextFeild?.tintColor = Constants.Color.Theme.Main;
+        self.spaceNameTextFeild?.layer.borderColor = UIColor.clear.cgColor
+        self.spaceNameTextFeild?.font = Constants.Font.InputBox.Input
+        self.spaceNameTextFeild?.bottomBorderEnabled = true;
+        self.spaceNameTextFeild?.floatingPlaceholderEnabled = false
+        self.spaceNameTextFeild?.rippleEnabled = false;
+        self.spaceNameTextFeild?.placeholder = "input space name"
+        self.spaceNameTextFeild?.returnKeyType = .done;
+        self.backView?.addSubview(self.spaceNameTextFeild!)
     }
     
     func setUpAddedCollectionView(){
@@ -291,7 +291,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         let createBtn = UIButton(frame: CGRect(x: Double(backViewWidth/2), y: 0.0, width: Double(backViewWidth/2), height: 50.0))
         createBtn.setTitle("Create", for: .normal)
         createBtn.setTitleColor(Constants.Color.Theme.Main, for: .normal)
-        createBtn.addTarget(self, action: #selector(createRoomBtnClicked), for: .touchUpInside)
+        createBtn.addTarget(self, action: #selector(createSpaceBtnClicked), for: .touchUpInside)
         createBtn.titleLabel?.font = Constants.Font.InputBox.Button
         btnBackView.addSubview(createBtn)
         
@@ -341,8 +341,8 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
 
     }
     
-    @objc func createRoomBtnClicked(){
-        self.requestCreateRoom()
+    @objc func createSpaceBtnClicked(){
+        self.requestCreateSpace()
     }
     
     

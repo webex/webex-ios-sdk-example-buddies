@@ -35,7 +35,7 @@ class User: Contact {
     static var CurrentUser = User(id: "", name: "qucui", email: "qucui@cisco.com")
 
     private var groups: [Group] = []
-    public var rooms: [RoomModel] = []
+    public var spaces: [SpaceModel] = []
 
     var loginType: UserLoginType = .None
     var jwtString: String?
@@ -62,7 +62,7 @@ class User: Contact {
             user.registerdOnWebhookServer = (registerdOnWebhookServer != nil)
             user.webHookCreated = (webhookCreated != nil)
             user.loadLocalGroups()
-            user.loadLocalRooms()
+            user.loadLocalSpaces()
             if let userLoginTypeRawValue = loginTypeRawValue{
                 let userLoginType = UserLoginType(rawValue: Int(userLoginTypeRawValue)!)
                 user.loginType = userLoginType!
@@ -88,7 +88,7 @@ class User: Contact {
             UserDefaults.standard.set(user.avatorUrl, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_avator")
             UserDefaults.standard.set(user.loginType.rawValue, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_LoginType")
             CurrentUser.loadLocalGroups()
-            CurrentUser.loadLocalRooms()
+            CurrentUser.loadLocalSpaces()
             return true
         }
         return false
@@ -116,14 +116,14 @@ class User: Contact {
     
     func logout() {
         self.saveGroupsToLocal()
-        self.saveLocalRooms()
+        self.saveLocalSpaces()
         self.deRegisterPhoneAndWebHook()
         self.name = ""
         self.email = ""
         self.avatorUrl = nil
         self.loginType = .None
         self.groups.removeAll()
-        self.rooms.removeAll()
+        self.spaces.removeAll()
         UserDefaults.standard.set(nil, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_name")
         UserDefaults.standard.set(nil, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_email")
         UserDefaults.standard.set(nil, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_avator")
@@ -242,82 +242,82 @@ class User: Contact {
         let groupListFilePath = self.getGroupFilePath()
         if(FileManager.default.fileExists(atPath: groupListFilePath)){
             do{
-                let roomListData = try Data(contentsOf: URL(fileURLWithPath: groupListFilePath))
-                self.groups = NSKeyedUnarchiver.unarchiveObject(with: roomListData) as! [Group]
+                let spaceListData = try Data(contentsOf: URL(fileURLWithPath: groupListFilePath))
+                self.groups = NSKeyedUnarchiver.unarchiveObject(with: spaceListData) as! [Group]
             }catch{
-                print("ReadRoomlistFile Failed")
+                print("ReadSpacelistFile Failed")
             }
         }
     }
     
     func saveGroupsToLocal() {
-        let roomListFilePath = self.getGroupFilePath()
-        let roomData = NSKeyedArchiver.archivedData(withRootObject: self.groups)
+        let spaceListFilePath = self.getGroupFilePath()
+        let spaceData = NSKeyedArchiver.archivedData(withRootObject: self.groups)
         do{
-            try roomData.write(to: URL(fileURLWithPath: roomListFilePath))
+            try spaceData.write(to: URL(fileURLWithPath: spaceListFilePath))
         }catch let error{
-            print("WirteRoomListFile Failed + \(error.localizedDescription)")
+            print("WirteSpaceListFile Failed + \(error.localizedDescription)")
         }
     }
     
     private func getGroupFilePath() -> String{
         let localFilePath = NSSearchPathForDirectoriesInDomains(.documentDirectory,.userDomainMask, true)
-        let roomsFiltPath = localFilePath[0]
+        let spacesFiltPath = localFilePath[0]
         let FileName = "\(self.email)+localGroups.plist"
-        let roomListFilePath = roomsFiltPath + "/" + FileName
-        return roomListFilePath
+        let spaceListFilePath = spacesFiltPath + "/" + FileName
+        return spaceListFilePath
     }
     
     
     
-    // MARK: - User Rooms Implemetation
-    var localRoomCount: Int {
-        return self.rooms.count
+    // MARK: - User Spaces Implemetation
+    var localSpaceCount: Int {
+        return self.spaces.count
     }
-    func findLocalRoomWithId(localGroupId: String) -> RoomModel? {
-        return self.rooms.filter( { $0.localGroupId ~= localGroupId } ).first
+    func findLocalSpaceWithId(localGroupId: String) -> SpaceModel? {
+        return self.spaces.filter( { $0.localGroupId ~= localGroupId } ).first
     }
 
-    func insertLocalRoom(room: RoomModel, atIndex: Int){
-        self.rooms.insert(room, at: atIndex)
+    func insertLocalSpace(space: SpaceModel, atIndex: Int){
+        self.spaces.insert(space, at: atIndex)
     }
     
-    func addLocalRoom(room: RoomModel ) {
-        self.rooms.append(room)
+    func addLocalSpace(space: SpaceModel ) {
+        self.spaces.append(space)
     }
     
-    func removeLocalRoom(localGroupId: String) {
-        _ = self.rooms.removeObject(equality: { $0.localGroupId == localGroupId })
+    func removeLocalSpace(localGroupId: String) {
+        _ = self.spaces.removeObject(equality: { $0.localGroupId == localGroupId })
     }
     
 
-    func loadLocalRooms() {
-        let roomListFilePath = self.getRoomsFilePathString()
-        if(FileManager.default.fileExists(atPath: roomListFilePath)){
+    func loadLocalSpaces() {
+        let spaceListFilePath = self.getSpacesFilePathString()
+        if(FileManager.default.fileExists(atPath: spaceListFilePath)){
             do{
-                let roomListData = try Data(contentsOf: URL(fileURLWithPath: roomListFilePath))
-                self.rooms = NSKeyedUnarchiver.unarchiveObject(with: roomListData) as! [RoomModel]
+                let spaceListData = try Data(contentsOf: URL(fileURLWithPath: spaceListFilePath))
+                self.spaces = NSKeyedUnarchiver.unarchiveObject(with: spaceListData) as! [SpaceModel]
             }catch{
-                print("ReadRoomlistFile Failed")
+                print("ReadSpacelistFile Failed")
             }
         }
     }
     
-    func saveLocalRooms() {
-        let roomListFilePath = self.getRoomsFilePathString()
-        let roomData = NSKeyedArchiver.archivedData(withRootObject: self.rooms)
+    func saveLocalSpaces() {
+        let spaceListFilePath = self.getSpacesFilePathString()
+        let spaceData = NSKeyedArchiver.archivedData(withRootObject: self.spaces)
         do{
-          try roomData.write(to: URL(fileURLWithPath: roomListFilePath))
+          try spaceData.write(to: URL(fileURLWithPath: spaceListFilePath))
         }catch let error{
-            print("WirteRoomListFile Failed + \(error.localizedDescription)")
+            print("WirteSpaceListFile Failed + \(error.localizedDescription)")
         }
     }
-    private func getRoomsFilePathString() ->String {
+    private func getSpacesFilePathString() ->String {
         let localFilePath = NSSearchPathForDirectoriesInDomains(.documentDirectory,.userDomainMask, true)
-        let roomsFiltPath = localFilePath[0]
-        let FileName = "\(self.email)+localRooms.plist"
-        let roomListFilePath = roomsFiltPath + "/" + FileName
-        return roomListFilePath
+        let spacesFiltPath = localFilePath[0]
+        let FileName = "\(self.email)+localSpaces.plist"
+        let spaceListFilePath = spacesFiltPath + "/" + FileName
+        return spaceListFilePath
     }
     // MARK: other Fucntions
     public func clearContactSelection(){

@@ -20,20 +20,19 @@
 
 import UIKit
 
-let roomTableCellHeight = 80
+let spaceTableCellHeight = 80
 
-class RoomListTableCell: UITableViewCell {
+class SpaceListTableCell: UITableViewCell {
 
     // MARK: - UI variabels
-    var roomModel: RoomModel?
+    var spaceModel: SpaceModel
     var backView: UIView?
     var unreadedLabel: UILabel?
     
-    
     // MARK: - UI implementation
-    init(roomModel: RoomModel){
+    init(spaceModel: SpaceModel){
+        self.spaceModel = spaceModel
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
-        self.roomModel = roomModel
         self.setUpSubViews()
     }
     
@@ -42,14 +41,14 @@ class RoomListTableCell: UITableViewCell {
             self.backView?.removeFromSuperview()
         }
         let viewWidth = Constants.Size.screenWidth
-        let viewHeight = roomTableCellHeight
+        let viewHeight = spaceTableCellHeight
         self.backView = UIView(frame: CGRect(0, 0, Int(viewWidth),viewHeight))
         self.backView?.backgroundColor = Constants.Color.Theme.Background
         self.contentView.addSubview(self.backView!)
         
         let titleLabel = UILabel(frame: CGRect(x: 15, y: 10, width: viewWidth-30, height: 50))
-        if let roomtitle = roomModel?.title{
-            titleLabel.text = roomtitle
+        if let spacetitle = spaceModel.title{
+            titleLabel.text = spacetitle
         }else{
             titleLabel.text = "No Name"
         }
@@ -66,12 +65,12 @@ class RoomListTableCell: UITableViewCell {
         self.backView?.addSubview(lastActLabel)
         
         let line = CALayer()
-        line.frame = CGRect(x: 15.0, y: Double(roomTableCellHeight)-1.0, width: Double(viewWidth-30.0), height: 0.5)
+        line.frame = CGRect(x: 15.0, y: Double(spaceTableCellHeight)-1.0, width: Double(viewWidth-30.0), height: 0.5)
         line.backgroundColor = Constants.Color.Theme.MediumControl.cgColor
         self.backView?.layer.addSublayer(line)
         
-        if let roomGroup = User.CurrentUser[(self.roomModel?.localGroupId)!]{
-            if(roomGroup.unReadedCount > 0){
+        if let spaceGroup = User.CurrentUser[(self.spaceModel.localGroupId)]{
+            if(spaceGroup.unReadedCount > 0){
                 self.unreadedLabel = UILabel(frame: CGRect(Int(viewWidth - 50),viewHeight/2-10,20,20))
                 self.unreadedLabel?.backgroundColor = UIColor.red
                 self.unreadedLabel?.font = Constants.Font.InputBox.Options
@@ -79,7 +78,7 @@ class RoomListTableCell: UITableViewCell {
                 self.unreadedLabel?.layer.cornerRadius = 10
                 self.unreadedLabel?.layer.masksToBounds = true
                 self.unreadedLabel?.textAlignment = .center
-                self.unreadedLabel?.text = String(describing: (roomGroup.unReadedCount))
+                self.unreadedLabel?.text = String(describing: (spaceGroup.unReadedCount))
                 self.backView?.addSubview(self.unreadedLabel!)
             }
         }else{

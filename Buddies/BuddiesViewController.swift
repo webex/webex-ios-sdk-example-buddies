@@ -23,14 +23,14 @@ import Cartography
 import FontAwesome_swift
 import WebexSDK
 
-class ContactViewController: BaseViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate {
+class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate {
 
     // MARK: - UI variables
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
     private var collectionView:UICollectionView?
-    private var roomVC : RoomViewController?
+    private var spaceVC : SpaceViewController?
     private var callVC : BuddiesCallViewController?
     private var isEditMode = false {
         didSet {
@@ -38,6 +38,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
             self.collectionView?.reloadData()
         }
     }
+    
     override init(mainViewController: MainViewController) {
         super.init(mainViewController : mainViewController)
     }
@@ -46,14 +47,16 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Buddies"
-        self.setUpSubViews()
         self.updateNavigationItems()
+        self.setUpSubViews()
     }
+    
     override func viewWillAppear(_ animated: Bool) {
-        if self.roomVC != nil{
-            self.roomVC = nil
+        if self.spaceVC != nil{
+            self.spaceVC = nil
         }
     }
+    
     // MARK: - WebexSDK: Phone Register And Setup Message-Receive Call Back
     public func checkWebexRegister(){
         if(User.CurrentUser.phoneRegisterd){
@@ -62,7 +65,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                 case .messageReceived(let message):
                     self.receiveNewMessage(message)
                     break
-                case .messageDeleted(let _):
+                case .messageDeleted(_):
                     break
                 }
             }
@@ -71,56 +74,56 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
 
     // MARK: - Webex Call / Message Function Implementation
     public func callActionTo( _ group: Group){
-        let localRoomName = group.groupName
+        let localSpaceName = group.groupName
         let localGroupId = group.groupId
         group.unReadedCount = 0
         self.collectionView?.reloadData()
-        if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
-            roomModel.title = localRoomName!
-            roomModel.roomMembers = [Contact]()
+        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId!){
+            spaceModel.title = localSpaceName!
+            spaceModel.spaceMembers = [Contact]()
             for contact in group.groupMembers{
-                roomModel.roomMembers?.append(contact)
+                spaceModel.spaceMembers?.append(contact)
             }
-            self.callVC = BuddiesCallViewController(room: roomModel)
+            self.callVC = BuddiesCallViewController(space: spaceModel)
             self.present(self.callVC!, animated: true) {
                 self.callVC?.beginCall(isVideo: true)
             }
         }else{
             if(group.groupType == .singleMember){
-                let createdRoom = RoomModel(roomId: "")
-                createdRoom.localGroupId = group.groupId!
-                createdRoom.title = localRoomName!
-                createdRoom.type = RoomType.direct
-                createdRoom.roomMembers = [Contact]()
+                let createdSpace = SpaceModel(spaceId: "")
+                createdSpace.localGroupId = group.groupId!
+                createdSpace.title = localSpaceName!
+                createdSpace.type = SpaceType.direct
+                createdSpace.spaceMembers = [Contact]()
                 for contact in group.groupMembers{
-                    createdRoom.roomMembers?.append(contact)
+                    createdSpace.spaceMembers?.append(contact)
                 }
-                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                self.callVC = BuddiesCallViewController(room: createdRoom)
+                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
+                self.callVC = BuddiesCallViewController(space: createdSpace)
                 self.present(self.callVC!, animated: true) {
                     self.callVC?.beginCall(isVideo: true)
                 }
                 return
             }
             
-            KTActivityIndicator.singleton.show(title: "Loading")
-            WebexSDK?.rooms.create(title: localRoomName!, completionHandler: {(response: ServiceResponse<Room>) in
+            acitivtyIndicator.show(title: "Loading...", at: (self.view)!, offset: 0, size: 156, allowUserInteraction: false)
+            WebexSDK?.spaces.create(title: localSpaceName!, completionHandler: {(response: ServiceResponse<Space>) in
                 switch response.result {
                 case .success(let value):
-                    if let createdRoom = RoomModel(room: value){
-                        group.groupId = createdRoom.roomId
-                        createdRoom.localGroupId = createdRoom.roomId
-                        createdRoom.title = localRoomName
-                        createdRoom.type = RoomType.group
-                        createdRoom.roomMembers = [Contact]()
-                        group.groupId = createdRoom.roomId
+                    if let createdSpace = SpaceModel(space: value){
+                        group.groupId = createdSpace.spaceId
+                        createdSpace.localGroupId = createdSpace.spaceId
+                        createdSpace.title = localSpaceName
+                        createdSpace.type = SpaceType.group
+                        createdSpace.spaceMembers = [Contact]()
+                        group.groupId = createdSpace.spaceId
                         let threahGroup = DispatchGroup()
                         for contact in group.groupMembers{
                             DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                WebexSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                                WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
                                     switch response.result{
                                     case .success(_):
-                                        createdRoom.roomMembers?.append(contact)
+                                        createdSpace.spaceMembers?.append(contact)
                                         break
                                     case .failure(let error):
                                         KTInputBox.alert(error: error)
@@ -132,9 +135,9 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                         
                         threahGroup.notify(queue: DispatchQueue.global(), execute: {
                             DispatchQueue.main.async {
-                                KTActivityIndicator.singleton.hide()
-                                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                                self.callVC = BuddiesCallViewController(room: createdRoom)
+                                self.acitivtyIndicator.hide()
+                                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
+                                self.callVC = BuddiesCallViewController(space: createdSpace)
                                 self.present(self.callVC!, animated: true) {
                                     self.callVC?.beginCall(isVideo: true)
                                 }
@@ -144,7 +147,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                     break
                 case .failure(let error):
                     DispatchQueue.main.async {
-                        KTActivityIndicator.singleton.hide()
+                        self.acitivtyIndicator.hide()
                         KTInputBox.alert(error: error)
                     }
                     break
@@ -154,52 +157,52 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
     }
     
     public func messageActionTo(_ group: Group){
-        let localRoomName = group.groupName
+        let localSpaceName = group.groupName
         let localGroupId = group.groupId
         group.unReadedCount = 0
         self.collectionView?.reloadData()
-        if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
-            roomModel.title = localRoomName!
-            roomModel.roomMembers = [Contact]()
+        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId!){
+            spaceModel.title = localSpaceName!
+            spaceModel.spaceMembers = [Contact]()
             for contact in group.groupMembers{
-                roomModel.roomMembers?.append(contact)
+                spaceModel.spaceMembers?.append(contact)
             }
-            self.roomVC = RoomViewController(room: roomModel)
-            self.navigationController?.pushViewController(self.roomVC!, animated: true)
+            self.spaceVC = SpaceViewController(space: spaceModel)
+            self.navigationController?.pushViewController(self.spaceVC!, animated: true)
         }else{
             if(group.groupType == .singleMember){
-                let createdRoom = RoomModel(roomId: "")
-                createdRoom.localGroupId = group.groupId!
-                createdRoom.title = localRoomName!
-                createdRoom.type = RoomType.direct
-                createdRoom.roomMembers = [Contact]()
+                let createdSpace = SpaceModel(spaceId: "")
+                createdSpace.localGroupId = group.groupId!
+                createdSpace.title = localSpaceName!
+                createdSpace.type = SpaceType.direct
+                createdSpace.spaceMembers = [Contact]()
                 for contact in group.groupMembers{
-                    createdRoom.roomMembers?.append(contact)
+                    createdSpace.spaceMembers?.append(contact)
                 }
-                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                self.roomVC = RoomViewController(room: createdRoom)
-                self.navigationController?.pushViewController(self.roomVC!, animated: true)
+                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
+                self.spaceVC = SpaceViewController(space: createdSpace)
+                self.navigationController?.pushViewController(self.spaceVC!, animated: true)
                 return
             }
             
             KTActivityIndicator.singleton.show(title: "Loading")
-            WebexSDK?.rooms.create(title: localRoomName!, completionHandler: {(response: ServiceResponse<Room>) in
+            WebexSDK?.spaces.create(title: localSpaceName!, completionHandler: {(response: ServiceResponse<Space>) in
                 switch response.result {
                 case .success(let value):
-                    if let createdRoom = RoomModel(room: value){
-                        group.groupId = createdRoom.roomId
-                        createdRoom.localGroupId = createdRoom.roomId
-                        createdRoom.title = localRoomName
-                        createdRoom.type = RoomType.group
-                        createdRoom.roomMembers = [Contact]()
-                        group.groupId = createdRoom.roomId
+                    if let createdSpace = SpaceModel(space: value){
+                        group.groupId = createdSpace.spaceId
+                        createdSpace.localGroupId = createdSpace.spaceId
+                        createdSpace.title = localSpaceName
+                        createdSpace.type = SpaceType.group
+                        createdSpace.spaceMembers = [Contact]()
+                        group.groupId = createdSpace.spaceId
                         let threahGroup = DispatchGroup()
                         for contact in group.groupMembers{
                             DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                WebexSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                                WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
                                     switch response.result{
                                     case .success(_):
-                                        createdRoom.roomMembers?.append(contact)
+                                        createdSpace.spaceMembers?.append(contact)
                                         break
                                     case .failure(let error):
                                         KTInputBox.alert(error: error)
@@ -212,9 +215,9 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                         threahGroup.notify(queue: DispatchQueue.global(), execute: {
                             DispatchQueue.main.async {
                                 KTActivityIndicator.singleton.hide()
-                                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                                self.roomVC = RoomViewController(room: createdRoom)
-                                self.navigationController?.pushViewController(self.roomVC!, animated: true)
+                                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
+                                self.spaceVC = SpaceViewController(space: createdSpace)
+                                self.navigationController?.pushViewController(self.spaceVC!, animated: true)
                             }
                         })
                     }
@@ -231,10 +234,10 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
     }
     
     public func receiveNewMessage( _ messageModel: Message){
-        if messageModel.roomType == RoomType.direct{//GROUP
-            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
-                if messageModel.personEmail == roomModel.localGroupId{
-                    roomVC.receiveNewMessage(message: messageModel)
+        if messageModel.spaceType == SpaceType.direct{//GROUP
+            if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
+                if messageModel.personEmail == spaceModel.localGroupId{
+                    spaceVC.receiveNewMessage(message: messageModel)
                     return
                 }
             }else{
@@ -243,26 +246,26 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                     self.collectionView?.reloadData()
                 }
             }
-            if let callVC = self.callVC, let roomModel = self.callVC?.roomModel{
-                if messageModel.personEmail?.md5 == roomModel.localGroupId{
+            if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
+                if messageModel.personEmail?.md5 == spaceModel.localGroupId{
                     callVC.receiveNewMessage(message: messageModel)
                     return
                 }
             }
         }else{
-            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
-                if messageModel.roomId == roomModel.roomId && messageModel.personEmail != User.CurrentUser.email{
-                    roomVC.receiveNewMessage(message: messageModel)
+            if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
+                if messageModel.spaceId == spaceModel.spaceId && messageModel.personEmail != User.CurrentUser.email{
+                    spaceVC.receiveNewMessage(message: messageModel)
                     return
                 }
             }else{
-                if let group = User.CurrentUser[messageModel.roomId!]{
+                if let group = User.CurrentUser[messageModel.spaceId!]{
                     group.unReadedCount += 1
                     self.collectionView?.reloadData()
                 }
             }
-            if let callVC = self.callVC, let roomModel = self.callVC?.roomModel{
-                if messageModel.personEmail?.md5 == roomModel.localGroupId{
+            if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
+                if messageModel.personEmail?.md5 == spaceModel.localGroupId{
                     callVC.receiveNewMessage(message: messageModel)
                     return
                 }
@@ -299,36 +302,15 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
         self.collectionView?.addGestureRecognizer(longPressGesture)
     }
     
-    private func updateNavigationItems() {
-        var avator: UIImageView?
+    override func updateNavigationItems() {
+        super.updateNavigationItems()
         if (User.CurrentUser.loginType == .User) { // UserLogin
-            avator = User.CurrentUser.avator
-            if let avator = avator {
-                avator.setCorner(Int(avator.frame.height / 2))
-            }
             if self.isEditMode {
                 self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(exitEditMode(sender:)))
             }
             else {
                 self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addContactBtnClicked(sender:)))
             }
-        } else {
-            avator = UIImageView(frame: CGRect(0, 0, 28, 28))
-            avator?.image = UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 28, height: 28))
-            self.navigationItem.rightBarButtonItem = nil
-        }
-        
-        
-        if let avator = avator {
-            let singleTap = UITapGestureRecognizer(target: self, action: #selector(showUserOptionView))
-            singleTap.numberOfTapsRequired = 1;
-            avator.isUserInteractionEnabled = true
-            avator.addGestureRecognizer(singleTap)
-            let widthConstraint = avator.widthAnchor.constraint(equalToConstant: 28)
-            let heightConstraint = avator.heightAnchor.constraint(equalToConstant: 28)
-            widthConstraint.isActive = true
-            heightConstraint.isActive = true
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: avator)
         }
     }
     
@@ -346,10 +328,6 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
         })
     }
     
-    @objc private func showUserOptionView() {
-        self.mainController?.slideInUserOptionView()
-    }
-    
     @objc private func handleLongPress(gesture : UILongPressGestureRecognizer!) {
         if gesture.state == .began {
             let p = gesture.location(in: self.collectionView)
@@ -363,14 +341,12 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
         self.isEditMode = false
     }
     
-
     // MARK: BaseViewController Functions Override
     override func updateViewController() {
         self.checkWebexRegister()
         self.updateNavigationItems()
         self.collectionView?.reloadData()
     }
-    
     
     // MARK: CollectionView Delegate
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -385,7 +361,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell:GroupCollcetionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "GroupCell", for: indexPath) as! GroupCollcetionViewCell;
+        let cell: GroupCollcetionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "GroupCell", for: indexPath) as! GroupCollcetionViewCell;
         cell.reset()
         if let group = User.CurrentUser[indexPath.item] {
             cell.setGroup(group)

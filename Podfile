@@ -4,7 +4,7 @@ platform :ios, '10.0'
 use_frameworks!
 
 target 'Buddies' do
-    pod 'WebexSDK', :git => 'https://github.com/webex/webex-ios-sdk.git', :branch => 'master'
+    pod 'WebexSDK', :git => 'https://github.com/webex/webex-ios-sdk.git', :branch => 'develop'
     pod 'FontAwesome.swift'
     pod 'Cartography'
     pod 'SDWebImage'

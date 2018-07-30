@@ -30,6 +30,10 @@ let CallReceptionNotification = "CallReceptionNotification"
 class MainViewController: UIViewController, UserOptionDelegate{
     
     // MARK: - UI variables
+    private var buddiesVC: BuddiesViewController?
+    private var spaceVC: SpaceListViewController?
+    private var teamVC: TeamListViewController?
+
     private let optionViewWidth = Constants.Size.screenWidth/4*3
     private var maskView: UIView?
     
@@ -56,11 +60,10 @@ class MainViewController: UIViewController, UserOptionDelegate{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let choosedVC = ContactViewController(mainViewController: self)
+        let choosedVC = BuddiesViewController(mainViewController: self)
         self.navVC = UINavigationController(rootViewController: choosedVC)
         self.navVC?.navigationBar.updateAppearance();
         self.view.addSubview((navVC?.view)!)
-        // MARK: remove after 
         self.registerPhone()
     }
     public func registerPhone(){
@@ -130,13 +133,9 @@ class MainViewController: UIViewController, UserOptionDelegate{
     
     // MARK: - WebexSDK: Webhook Create / Register notification info into web hook server
     func registerWebexWebhook(completionHandler: ((Bool) -> Void)?) {
-        
         if  let voipToken = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_voip_token"),
             let msgToken = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_msg_token") {
-            
             KTActivityIndicator.singleton.show(title: "Connecting....")
-            
-            
             let threahGroup = DispatchGroup()
             
             /*
@@ -202,10 +201,10 @@ class MainViewController: UIViewController, UserOptionDelegate{
         /* create webhook for notification reception */
         let webHookName = User.CurrentUser.name + "-MSG-WebHook"
         let targetUrl = Constants.Webhook.redirectUrl
-        //                    let filter = Constants.Webhook.filter
+        //let filter = Constants.Webhook.filter
         /*
          Scope of notification, should one of resource below
-         [all, calls, rooms, messages, memberships, callMemberships]
+         [all, calls, spaces, messages, memberships, callMemberships]
          */
         let resource = "messages"
         /*
@@ -332,7 +331,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
         default:
             break
         }
-        if(optionType == .Buddies || optionType == .Teams || optionType == .Rooms || optionType == .LogOut){
+        if(optionType == .Buddies || optionType == .Teams || optionType == .Spaces || optionType == .LogOut){
             if(currentOptionType == optionType || optionType == .LogOut ){
                 self.dismissUserOptionView()
             }else{
@@ -343,22 +342,11 @@ class MainViewController: UIViewController, UserOptionDelegate{
     }
     
     func updateCurrentViewController(optionType: UserOptionType){
-        
-        var choosedVC: BaseViewController
-        if(optionType == .Buddies){
-            choosedVC = ContactViewController(mainViewController: self)
-        }else if(optionType == .Rooms){
-            choosedVC = RoomListViewController(mainViewController: self)
-        }else if(optionType == .Teams){
-            choosedVC = TeamListViewController(mainViewController: self)
-        }else{
-            choosedVC = ContactViewController(mainViewController: self)
-        }
         if(self.navVC != nil){
             self.navVC?.viewControllers.removeAll()
             self.navVC?.view.removeFromSuperview()
         }
-        self.navVC = UINavigationController(rootViewController: choosedVC)
+        self.navVC = UINavigationController(rootViewController: self.getChoosedVC(optionType: optionType))
         self.navVC?.navigationBar.updateAppearance();
         self.navVC?.view.transform = CGAffineTransform(translationX: self.optionViewWidth, y: 0)
         self.view.addSubview((navVC?.view)!)
@@ -413,6 +401,42 @@ class MainViewController: UIViewController, UserOptionDelegate{
     }
     
     // MARK: - other functions
+    private func getChoosedVC(optionType: UserOptionType) -> BaseViewController {
+        var choosedVC: BaseViewController
+        switch optionType {
+        case .Buddies:
+            if let vc = self.buddiesVC {
+                choosedVC = vc
+            }
+            else {
+                self.buddiesVC = BuddiesViewController(mainViewController: self)
+                choosedVC = self.buddiesVC!
+            }
+            break
+        case .Spaces:
+            if let vc = self.spaceVC {
+                choosedVC = vc
+            }
+            else {
+                self.spaceVC = SpaceListViewController(mainViewController: self)
+                choosedVC = self.spaceVC!
+            }
+            break
+        case .Teams:
+            if let vc = self.teamVC {
+                choosedVC = vc
+            }
+            else {
+                self.teamVC = TeamListViewController(mainViewController: self)
+                choosedVC = self.teamVC!
+            }
+            break
+        default:
+            choosedVC = BuddiesViewController(mainViewController: self)
+            break
+        }
+        return choosedVC
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.

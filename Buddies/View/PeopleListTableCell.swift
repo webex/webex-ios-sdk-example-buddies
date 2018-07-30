@@ -91,15 +91,15 @@ class PeopleListTableCell: UITableViewCell {
         self.backView?.layer.addSublayer(line)
     }
     
-    // MARK: - Room Creatation Table cell Implementation
+    // MARK: - Space Creatation Table cell Implementation
     init(searchedContactModel: Contact){
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
         self.contactModel = searchedContactModel
         self.selectionStyle = .none
-        self.setUpRoomCreatePeopleTableSubViews()
+        self.setUpSpaceCreatePeopleTableSubViews()
     }
     
-    func setUpRoomCreatePeopleTableSubViews(){
+    func setUpSpaceCreatePeopleTableSubViews(){
         if(self.backView != nil){
             self.backView?.removeFromSuperview()
         }
@@ -155,7 +155,7 @@ class PeopleListTableCell: UITableViewCell {
         }
     }
     
-    // MARK: - Room Membership Table Implementation
+    // MARK: - Space Membership Table Implementation
     init(membershipModel: Membership){
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
         self.membershipModel = membershipModel

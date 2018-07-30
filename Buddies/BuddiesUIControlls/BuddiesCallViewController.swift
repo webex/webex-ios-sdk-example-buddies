@@ -69,7 +69,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private var bottomBackView: UIView?
     private var buddiesInputView : BuddiesInputView?
     private var isReceivingScreenShare: Bool = false
-    public var roomModel : RoomModel?
+    public var spaceModel : SpaceModel?
     
     // MARK: - Life Circle
     init(callee: Contact, uuid: UUID? = nil, callkit: CXProvider? = nil) {
@@ -78,17 +78,17 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.uuid = uuid
         self.callkit = callkit
         if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: callee.email){
-            self.roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: group.groupId!)
+            self.spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: group.groupId!)
         }
         super.init(nibName: nil, bundle: nil);
     }
     
-    init(room: RoomModel, uuid: UUID? = nil, callkit: CXProvider? = nil){
-        self.isGroupCall = room.type == RoomType.group ? true : false
-        self.callee = Contact(id: "", name: room.title!, email: room.roomId)
+    init(space: SpaceModel, uuid: UUID? = nil, callkit: CXProvider? = nil){
+        self.isGroupCall = space.type == SpaceType.group ? true : false
+        self.callee = Contact(id: "", name: space.title!, email: space.spaceId)
         self.uuid = uuid
         self.callkit = callkit
-        self.roomModel = room
+        self.spaceModel = space
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -132,9 +132,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }else{
             mediaOption = MediaOption.audioOnly()
         }
-        if let room = self.roomModel{
-            if room.type == RoomType.direct {
-                WebexSDK?.phone.dial(room.localGroupId, option:  mediaOption) { result in
+        if let space = self.spaceModel{
+            if space.type == SpaceType.direct {
+                WebexSDK?.phone.dial(space.localGroupId, option:  mediaOption) { result in
                     KTActivityIndicator.singleton.hide()
                     switch result {
                     case .success(let call):
@@ -145,8 +145,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                     }
                 }
             }else{
-                if let roomId = self.roomModel?.roomId{
-                    WebexSDK?.phone.dial(roomId, option:  mediaOption) { result in
+                if let spaceId = self.spaceModel?.spaceId{
+                    WebexSDK?.phone.dial(spaceId, option:  mediaOption) { result in
                         KTActivityIndicator.singleton.hide()
                         switch result {
                         case .success(let call):
@@ -359,7 +359,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
         let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
-        msgModel?.localGroupId = self.roomModel?.localGroupId
+        msgModel?.localGroupId = self.spaceModel?.localGroupId
         if(msgModel?.text == nil){
             msgModel?.text = ""
         }
@@ -674,22 +674,22 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     // MARK: Page Logic Iplementation
-    // MARK: - WebexSDK: post message current room
+    // MARK: - WebexSDK: post message current space
     func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
         let tempMessageModel = BDSMessage()
-        tempMessageModel.roomId = self.roomModel?.roomId
+        tempMessageModel.spaceId = self.spaceModel?.spaceId
         tempMessageModel.messageState = MessageState.willSend
         tempMessageModel.text = text
-        if self.roomModel?.type == RoomType.direct{
-            if let personEmail = self.roomModel?.roomMembers![0].email,
-                let personId = self.roomModel?.roomMembers![0].id{
+        if self.spaceModel?.type == SpaceType.direct{
+            if let personEmail = self.spaceModel?.spaceMembers![0].email,
+                let personId = self.spaceModel?.spaceMembers![0].id{
                 tempMessageModel.toPersonEmail = EmailAddress.fromString(personEmail)
                 tempMessageModel.toPersonId = personId
             }
         }
         tempMessageModel.personId = User.CurrentUser.id
         tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
-        tempMessageModel.localGroupId = self.roomModel?.localGroupId
+        tempMessageModel.localGroupId = self.spaceModel?.localGroupId
         if let mentions = mentionList, mentions.count>0{
             var mentionModels : [Mention] = []
             for mention in mentions{
