@@ -59,11 +59,13 @@ class BDSMessage: NSObject {
     
     public var messageState: MessageState?
     
-    public var localGroupId: String? //GroupId contain witch Space it is involved in
+    public var localSpaceId: String? //SpaceId contain witch Space it is involved in
     
     public var mentionList: [Mention]?
     
     public var imageDataDict: Dictionary<String, Data>?
+    
+    public var avator: String?
     
     convenience init?(messageModel: Message) {
         self.init()

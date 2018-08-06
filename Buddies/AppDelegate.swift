@@ -88,8 +88,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
         
         /* Save User Info on Local */
         if(User.CurrentUser.loginType != .None){
-            User.CurrentUser.saveLocalSpaces()
-            User.CurrentUser.saveGroupsToLocal()
+            User.CurrentUser.saveSpacesToLocal()
         }
     }
 
@@ -142,30 +141,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
         let dict = userInfo["aps"] as? Dictionary<String, AnyObject>
         let alert = dict?["alert"] as? Dictionary<String, AnyObject>
         let email = alert?["body"] as? String
-        let title = alert?["title"] as? String
+        let _ = alert?["title"] as? String
 
         let state = UIApplication.shared.applicationState
-        if state != .active {
-            if(User.loadUserFromLocal()){
-                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
-                    localGroup.unReadedCount += 1
-                }
-            }
-        }else{
-            if(User.CurrentUser.loginType != .None){
-                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
-                    localGroup.unReadedCount += 1
-                }
-            }
-        }
-
-        if(title == "New Message"){
-            if let home = self.rootController, let email = email {
-                if email != User.CurrentUser.email{
-                    home.receviMessageNotification(fromEmail: email)
-                }
-            }
-        }
+//        if state != .active {
+//            if(User.loadUserFromLocal()){
+//                if let localSpace = User.CurrentUser[email!]{
+//                    localSpace.unReadedCount += 1
+//                }
+//            }
+//        }else{
+//            if(User.CurrentUser.loginType != .None){
+//                if let localSpace = User.CurrentUser[email!]{
+//                    localSpace.unReadedCount += 1
+//                }
+//            }
+//        }
+//
+//        if(title == "New Message"){
+//            if let home = self.rootController, let email = email {
+//                if email != User.CurrentUser.email{
+//                    home.receviMessageNotification(fromEmail: email)
+//                }
+//            }
+//        }
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for: PKPushType) {

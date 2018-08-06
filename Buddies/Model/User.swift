@@ -23,7 +23,6 @@ import SDWebImage
 import WebexSDK
 import Alamofire
 
-
 enum UserLoginType : Int {
     case None // not Login
     case User // Login as OAuthUser
@@ -34,7 +33,6 @@ class User: Contact {
     
     static var CurrentUser = User(id: "", name: "qucui", email: "qucui@cisco.com")
 
-    private var groups: [Group] = []
     public var spaces: [SpaceModel] = []
 
     var loginType: UserLoginType = .None
@@ -61,7 +59,6 @@ class User: Contact {
             user.avatorUrl = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_avator")
             user.registerdOnWebhookServer = (registerdOnWebhookServer != nil)
             user.webHookCreated = (webhookCreated != nil)
-            user.loadLocalGroups()
             user.loadLocalSpaces()
             if let userLoginTypeRawValue = loginTypeRawValue{
                 let userLoginType = UserLoginType(rawValue: Int(userLoginTypeRawValue)!)
@@ -87,7 +84,6 @@ class User: Contact {
             UserDefaults.standard.set(user.email, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_email")
             UserDefaults.standard.set(user.avatorUrl, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_avator")
             UserDefaults.standard.set(user.loginType.rawValue, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_LoginType")
-            CurrentUser.loadLocalGroups()
             CurrentUser.loadLocalSpaces()
             return true
         }
@@ -115,14 +111,12 @@ class User: Contact {
     }
     
     func logout() {
-        self.saveGroupsToLocal()
-        self.saveLocalSpaces()
+        self.saveSpacesToLocal()
         self.deRegisterPhoneAndWebHook()
         self.name = ""
         self.email = ""
         self.avatorUrl = nil
         self.loginType = .None
-        self.groups.removeAll()
         self.spaces.removeAll()
         UserDefaults.standard.set(nil, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_name")
         UserDefaults.standard.set(nil, forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_email")
@@ -137,17 +131,17 @@ class User: Contact {
     
     private func deRegisterPhoneAndWebHook(){
         KTActivityIndicator.singleton.show(title: "Logging Out..")
-        let threahGroup = DispatchGroup()
+        let threahSpace = DispatchGroup()
         
         /* Remove cevice from cisco cloud */
-        DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+        DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
             WebexSDK?.phone.deregister({ (_ error) in
                 
             })
         }))
         
         /* Remove Message/Voip token from Webhook Server*/
-        DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+        DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
             if let token = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_voip_token") {
                 Alamofire.request("https://ios-demo-pushnoti-server.herokuapp.com/register/\(token)", method: .delete).response { res in
                     
@@ -155,7 +149,7 @@ class User: Contact {
             }
         }))
         
-        DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+        DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
             if let token = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_msg_token") {
                 Alamofire.request("https://ios-demo-pushnoti-server.herokuapp.com/register/\(token)", method: .delete).response { res in
                            
@@ -165,7 +159,7 @@ class User: Contact {
         
         
         /* Delete WebHook for User */
-        DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+        DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
             if let webHookId = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.user_WebhookId") {
                 WebexSDK?.webhooks.delete(webhookId: webHookId, completionHandler: { (_ res) in
                     print("\(res)")
@@ -174,7 +168,7 @@ class User: Contact {
             }
         }))
         
-        threahGroup.notify(queue: DispatchQueue.global(), execute: {
+        threahSpace.notify(queue: DispatchQueue.global(), execute: {
             DispatchQueue.main.async {
                 KTActivityIndicator.singleton.hide()
                 WebexSDK?.authenticator.deauthorize()
@@ -183,8 +177,8 @@ class User: Contact {
     }
 
     // MARK: - User Contacts Implementation
-    var groupCount: Int {
-        return self.groups.count
+    var spaceCount: Int {
+        return self.spaces.count
     }
         
     private var _callhook: String?
@@ -199,100 +193,41 @@ class User: Contact {
         }
     }
     
-    subscript(index: Int) -> Group? {
-        return self.groups.safeObjectAtIndex(index)
+    subscript(index: Int) -> SpaceModel? {
+        return self.spaces.safeObjectAtIndex(index)
     }
     
-    subscript(groupId: String) -> Group? {
-        return self.groups.filter({$0.groupId == groupId}).first
+    subscript(spaceId: String) -> SpaceModel? {
+        return self.spaces.filter({$0.localSpaceId == spaceId}).first
     }
     
-    func getSingleGroupWithContactId(contactId: String)->Group?{
-         return self.getSingleMemberGroup().filter({$0[0]?.id == contactId}).first
-    }
-    
-    func getSingleGroupWithContactEmail(email: String)->Group?{
-        return self.getSingleMemberGroup().filter({$0[0]?.email == email}).first
-    }
-    
-
-    func addNewGroup(newGroup: Group){
-        self.groups.append(newGroup)
-    }
-    
-    func addNewContactAsGroup(contact: Contact) {
-        let newGroup = Group(contact: contact)
-        self.groups.append(newGroup)
-    }
-    
-    func removeGroup(groupId: String) {
-        _ = self.groups.removeObject(equality: { $0.groupId == groupId })
-    }
-    
-    func removeAllGroups(){
-        self.groups.removeAll()
-    }
-    
-    func getSingleMemberGroup()->[Group]{
-        return self.groups.filter({$0.groupType == GroupType.singleMember})
-    }
-    
-    
-    func loadLocalGroups() {
-        let groupListFilePath = self.getGroupFilePath()
-        if(FileManager.default.fileExists(atPath: groupListFilePath)){
-            do{
-                let spaceListData = try Data(contentsOf: URL(fileURLWithPath: groupListFilePath))
-                self.groups = NSKeyedUnarchiver.unarchiveObject(with: spaceListData) as! [Group]
-            }catch{
-                print("ReadSpacelistFile Failed")
-            }
-        }
-    }
-    
-    func saveGroupsToLocal() {
-        let spaceListFilePath = self.getGroupFilePath()
-        let spaceData = NSKeyedArchiver.archivedData(withRootObject: self.groups)
-        do{
-            try spaceData.write(to: URL(fileURLWithPath: spaceListFilePath))
-        }catch let error{
-            print("WirteSpaceListFile Failed + \(error.localizedDescription)")
-        }
-    }
-    
-    private func getGroupFilePath() -> String{
-        let localFilePath = NSSearchPathForDirectoriesInDomains(.documentDirectory,.userDomainMask, true)
-        let spacesFiltPath = localFilePath[0]
-        let FileName = "\(self.email)+localGroups.plist"
-        let spaceListFilePath = spacesFiltPath + "/" + FileName
-        return spaceListFilePath
-    }
-    
-    
-    
-    // MARK: - User Spaces Implemetation
-    var localSpaceCount: Int {
-        return self.spaces.count
-    }
-    func findLocalSpaceWithId(localGroupId: String) -> SpaceModel? {
-        return self.spaces.filter( { $0.localGroupId ~= localGroupId } ).first
+    func getSingleSpaceWithContactId(contactId: String)->SpaceModel?{
+         return self.getSingleMemberSpace().filter({$0.localSpaceId == contactId}).first
     }
 
-    func insertLocalSpace(space: SpaceModel, atIndex: Int){
-        self.spaces.insert(space, at: atIndex)
+    func addNewSpace(newSpace: SpaceModel){
+        self.spaces.insert(newSpace, at: 0)
     }
     
-    func addLocalSpace(space: SpaceModel ) {
-        self.spaces.append(space)
+    func addNewContactAsSpace(contact: Contact) {
+        let newSpace = SpaceModel(contact: contact)
+        self.spaces.append(newSpace)
     }
     
-    func removeLocalSpace(localGroupId: String) {
-        _ = self.spaces.removeObject(equality: { $0.localGroupId == localGroupId })
+    func removeSpace(spaceId: String) {
+        _ = self.spaces.removeObject(equality: { $0.localSpaceId == spaceId })
     }
     
-
+    func removeAllSpaces(){
+        self.spaces.removeAll()
+    }
+    
+    func getSingleMemberSpace()->[SpaceModel]{
+        return self.spaces
+    }
+    
     func loadLocalSpaces() {
-        let spaceListFilePath = self.getSpacesFilePathString()
+        let spaceListFilePath = self.getSpaceFilePath()
         if(FileManager.default.fileExists(atPath: spaceListFilePath)){
             do{
                 let spaceListData = try Data(contentsOf: URL(fileURLWithPath: spaceListFilePath))
@@ -303,27 +238,22 @@ class User: Contact {
         }
     }
     
-    func saveLocalSpaces() {
-        let spaceListFilePath = self.getSpacesFilePathString()
+    func saveSpacesToLocal() {
+        let spaceListFilePath = self.getSpaceFilePath()
         let spaceData = NSKeyedArchiver.archivedData(withRootObject: self.spaces)
         do{
-          try spaceData.write(to: URL(fileURLWithPath: spaceListFilePath))
+            try spaceData.write(to: URL(fileURLWithPath: spaceListFilePath))
         }catch let error{
             print("WirteSpaceListFile Failed + \(error.localizedDescription)")
         }
     }
-    private func getSpacesFilePathString() ->String {
+    
+    private func getSpaceFilePath() -> String{
         let localFilePath = NSSearchPathForDirectoriesInDomains(.documentDirectory,.userDomainMask, true)
         let spacesFiltPath = localFilePath[0]
         let FileName = "\(self.email)+localSpaces.plist"
         let spaceListFilePath = spacesFiltPath + "/" + FileName
         return spaceListFilePath
-    }
-    // MARK: other Fucntions
-    public func clearContactSelection(){
-        for group in groups{
-            group.clearContactSelection()
-        }
     }
     
     public required init?(coder aDecoder: NSCoder) {

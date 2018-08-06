@@ -52,223 +52,53 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if self.spaceVC != nil{
-            self.spaceVC = nil
-        }
-    }
-    
-    // MARK: - WebexSDK: Phone Register And Setup Message-Receive Call Back
-    public func checkWebexRegister(){
-        if(User.CurrentUser.phoneRegisterd){
-            WebexSDK?.messages.onEvent = { event in
-                switch event{
-                case .messageReceived(let message):
-                    self.receiveNewMessage(message)
-                    break
-                case .messageDeleted(_):
-                    break
-                }
-            }
-        }
+        self.spaceVC = nil
     }
 
     // MARK: - Webex Call / Message Function Implementation
-    public func callActionTo( _ group: Group){
-        let localSpaceName = group.groupName
-        let localGroupId = group.groupId
-        group.unReadedCount = 0
+    public func callActionTo( _ spaceModel: SpaceModel){
+        spaceModel.unReadedCount = 0
         self.collectionView?.reloadData()
-        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId!){
-            spaceModel.title = localSpaceName!
-            spaceModel.spaceMembers = [Contact]()
-            for contact in group.groupMembers{
-                spaceModel.spaceMembers?.append(contact)
-            }
-            self.callVC = BuddiesCallViewController(space: spaceModel)
-            self.present(self.callVC!, animated: true) {
-                self.callVC?.beginCall(isVideo: true)
-            }
-        }else{
-            if(group.groupType == .singleMember){
-                let createdSpace = SpaceModel(spaceId: "")
-                createdSpace.localGroupId = group.groupId!
-                createdSpace.title = localSpaceName!
-                createdSpace.type = SpaceType.direct
-                createdSpace.spaceMembers = [Contact]()
-                for contact in group.groupMembers{
-                    createdSpace.spaceMembers?.append(contact)
-                }
-                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
-                self.callVC = BuddiesCallViewController(space: createdSpace)
-                self.present(self.callVC!, animated: true) {
-                    self.callVC?.beginCall(isVideo: true)
-                }
-                return
-            }
-            
-            acitivtyIndicator.show(title: "Loading...", at: (self.view)!, offset: 0, size: 156, allowUserInteraction: false)
-            WebexSDK?.spaces.create(title: localSpaceName!, completionHandler: {(response: ServiceResponse<Space>) in
-                switch response.result {
-                case .success(let value):
-                    if let createdSpace = SpaceModel(space: value){
-                        group.groupId = createdSpace.spaceId
-                        createdSpace.localGroupId = createdSpace.spaceId
-                        createdSpace.title = localSpaceName
-                        createdSpace.type = SpaceType.group
-                        createdSpace.spaceMembers = [Contact]()
-                        group.groupId = createdSpace.spaceId
-                        let threahGroup = DispatchGroup()
-                        for contact in group.groupMembers{
-                            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
-                                    switch response.result{
-                                    case .success(_):
-                                        createdSpace.spaceMembers?.append(contact)
-                                        break
-                                    case .failure(let error):
-                                        KTInputBox.alert(error: error)
-                                        break
-                                    }
-                                })
-                            }))
-                        }
-                        
-                        threahGroup.notify(queue: DispatchQueue.global(), execute: {
-                            DispatchQueue.main.async {
-                                self.acitivtyIndicator.hide()
-                                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
-                                self.callVC = BuddiesCallViewController(space: createdSpace)
-                                self.present(self.callVC!, animated: true) {
-                                    self.callVC?.beginCall(isVideo: true)
-                                }
-                            }
-                        })
-                    }
-                    break
-                case .failure(let error):
-                    DispatchQueue.main.async {
-                        self.acitivtyIndicator.hide()
-                        KTInputBox.alert(error: error)
-                    }
-                    break
-                }
-            })
+        self.callVC = BuddiesCallViewController(space: spaceModel)
+        self.present(self.callVC!, animated: true) {
+            self.callVC?.beginCall(isVideo: true)
         }
     }
     
-    public func messageActionTo(_ group: Group){
-        let localSpaceName = group.groupName
-        let localGroupId = group.groupId
-        group.unReadedCount = 0
+    public func messageActionTo(_ spaceModel: SpaceModel){
+        spaceModel.unReadedCount = 0
         self.collectionView?.reloadData()
-        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId!){
-            spaceModel.title = localSpaceName!
-            spaceModel.spaceMembers = [Contact]()
-            for contact in group.groupMembers{
-                spaceModel.spaceMembers?.append(contact)
-            }
-            self.spaceVC = SpaceViewController(space: spaceModel)
-            self.navigationController?.pushViewController(self.spaceVC!, animated: true)
-        }else{
-            if(group.groupType == .singleMember){
-                let createdSpace = SpaceModel(spaceId: "")
-                createdSpace.localGroupId = group.groupId!
-                createdSpace.title = localSpaceName!
-                createdSpace.type = SpaceType.direct
-                createdSpace.spaceMembers = [Contact]()
-                for contact in group.groupMembers{
-                    createdSpace.spaceMembers?.append(contact)
-                }
-                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
-                self.spaceVC = SpaceViewController(space: createdSpace)
-                self.navigationController?.pushViewController(self.spaceVC!, animated: true)
-                return
-            }
-            
-            KTActivityIndicator.singleton.show(title: "Loading")
-            WebexSDK?.spaces.create(title: localSpaceName!, completionHandler: {(response: ServiceResponse<Space>) in
-                switch response.result {
-                case .success(let value):
-                    if let createdSpace = SpaceModel(space: value){
-                        group.groupId = createdSpace.spaceId
-                        createdSpace.localGroupId = createdSpace.spaceId
-                        createdSpace.title = localSpaceName
-                        createdSpace.type = SpaceType.group
-                        createdSpace.spaceMembers = [Contact]()
-                        group.groupId = createdSpace.spaceId
-                        let threahGroup = DispatchGroup()
-                        for contact in group.groupMembers{
-                            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
-                                    switch response.result{
-                                    case .success(_):
-                                        createdSpace.spaceMembers?.append(contact)
-                                        break
-                                    case .failure(let error):
-                                        KTInputBox.alert(error: error)
-                                        break
-                                    }
-                                })
-                            }))
-                        }
-                        
-                        threahGroup.notify(queue: DispatchQueue.global(), execute: {
-                            DispatchQueue.main.async {
-                                KTActivityIndicator.singleton.hide()
-                                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
-                                self.spaceVC = SpaceViewController(space: createdSpace)
-                                self.navigationController?.pushViewController(self.spaceVC!, animated: true)
-                            }
-                        })
-                    }
-                    break
-                case .failure(let error):
-                    DispatchQueue.main.async {
-                        KTActivityIndicator.singleton.hide()
-                        KTInputBox.alert(error: error)
-                    }
-                    break
-                }
-            })
-        }
+        self.spaceVC = SpaceViewController(space: spaceModel)
+        self.navigationController?.pushViewController(self.spaceVC!, animated: true)
     }
     
     public func receiveNewMessage( _ messageModel: Message){
-        if messageModel.spaceType == SpaceType.direct{//GROUP
-            if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
-                if messageModel.personEmail == spaceModel.localGroupId{
-                    spaceVC.receiveNewMessage(message: messageModel)
-                    return
-                }
-            }else{
-                if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
-                    group.unReadedCount += 1
+        if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
+            if messageModel.personEmail == spaceModel.localSpaceId{
+                spaceVC.receiveNewMessage(message: messageModel)
+                return
+            } else{
+                if let space = User.CurrentUser[messageModel.personEmail!]{
+                    space.unReadedCount += 1
                     self.collectionView?.reloadData()
                 }
             }
-            if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
-                if messageModel.personEmail?.md5 == spaceModel.localGroupId{
-                    callVC.receiveNewMessage(message: messageModel)
-                    return
-                }
-            }
-        }else{
-            if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
-                if messageModel.spaceId == spaceModel.spaceId && messageModel.personEmail != User.CurrentUser.email{
-                    spaceVC.receiveNewMessage(message: messageModel)
-                    return
-                }
-            }else{
-                if let group = User.CurrentUser[messageModel.spaceId!]{
-                    group.unReadedCount += 1
+        }
+        else if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
+            if messageModel.personEmail == spaceModel.localSpaceId{
+                callVC.receiveNewMessage(message: messageModel)
+                return
+            } else{
+                if let space = User.CurrentUser[messageModel.personEmail!]{
+                    space.unReadedCount += 1
                     self.collectionView?.reloadData()
                 }
             }
-            if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
-                if messageModel.personEmail?.md5 == spaceModel.localGroupId{
-                    callVC.receiveNewMessage(message: messageModel)
-                    return
-                }
+        }
+        else{
+            if let space = User.CurrentUser[messageModel.personEmail!]{
+                space.unReadedCount += 1
+                self.collectionView?.reloadData()
             }
         }
     }
@@ -282,7 +112,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         layout.sectionInset = UIEdgeInsets(top: 30, left: 30, bottom: 30, right: 30);
         
         self.collectionView = UICollectionView(frame:CGRect.zero, collectionViewLayout: layout);
-        self.collectionView?.register(GroupCollcetionViewCell.self, forCellWithReuseIdentifier: "GroupCell");
+        self.collectionView?.register(SpaceCollcetionViewCell.self, forCellWithReuseIdentifier: "SpaceCell");
         self.collectionView?.delegate = self;
         self.collectionView?.dataSource = self;
         self.collectionView?.backgroundColor = Constants.Color.Theme.Background;
@@ -302,21 +132,9 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         self.collectionView?.addGestureRecognizer(longPressGesture)
     }
     
-    override func updateNavigationItems() {
-        super.updateNavigationItems()
-        if (User.CurrentUser.loginType == .User) { // UserLogin
-            if self.isEditMode {
-                self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(exitEditMode(sender:)))
-            }
-            else {
-                self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addContactBtnClicked(sender:)))
-            }
-        }
-    }
-    
     // MARK: UI Logic Implementation
     @objc private func addContactBtnClicked(sender: UIBarButtonItem) {
-        let peopleListVC = PeopleListViewController()
+        let peopleListVC = PeopleListViewController(pageType: .People)
         peopleListVC.completionHandler = { dataChanged in
             if(dataChanged){
                 self.collectionView?.reloadData()
@@ -331,7 +149,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
     @objc private func handleLongPress(gesture : UILongPressGestureRecognizer!) {
         if gesture.state == .began {
             let p = gesture.location(in: self.collectionView)
-            if let indexPath = self.collectionView?.indexPathForItem(at: p), let _: GroupCollcetionViewCell = self.collectionView?.cellForItem(at: indexPath) as? GroupCollcetionViewCell {
+            if let indexPath = self.collectionView?.indexPathForItem(at: p), let _: SpaceCollcetionViewCell = self.collectionView?.cellForItem(at: indexPath) as? SpaceCollcetionViewCell {
                 self.isEditMode = true
             }
         }
@@ -343,9 +161,20 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
     
     // MARK: BaseViewController Functions Override
     override func updateViewController() {
-        self.checkWebexRegister()
         self.updateNavigationItems()
         self.collectionView?.reloadData()
+    }
+    
+    override func updateNavigationItems() {
+        super.updateNavigationItems()
+        if (User.CurrentUser.loginType == .User) {
+            if self.isEditMode {
+                self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(exitEditMode(sender:)))
+            }
+            else {
+                self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addContactBtnClicked(sender:)))
+            }
+        }
     }
     
     // MARK: CollectionView Delegate
@@ -357,19 +186,19 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         if(User.CurrentUser.loginType == .Guest){
             return 0
         }
-        return User.CurrentUser.groupCount
+        return User.CurrentUser.spaceCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell: GroupCollcetionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "GroupCell", for: indexPath) as! GroupCollcetionViewCell;
+        let cell: SpaceCollcetionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "SpaceCell", for: indexPath) as! SpaceCollcetionViewCell;
         cell.reset()
-        if let group = User.CurrentUser[indexPath.item] {
-            cell.setGroup(group)
+        if let space = User.CurrentUser[indexPath.item] {
+            cell.setSpace(space)
             if self.isEditMode {
-                cell.onDelete = { groupId in
-                    if let groupIdStr = groupId {
-                        PopupOptionView.show(group: group, action: "Delete", dismissHandler: {
-                            User.CurrentUser.removeGroup(groupId: groupIdStr)
+                cell.onDelete = { spaceId in
+                    if let spaceIdStr = spaceId {
+                        PopupOptionView.show(spaceModel: space, action: "Delete", dismissHandler: {
+                            User.CurrentUser.removeSpace(spaceId: spaceIdStr)
                             self.collectionView?.reloadData()
                         })
                     }
@@ -380,14 +209,14 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let cell: GroupCollcetionViewCell = collectionView.cellForItem(at: indexPath) as? GroupCollcetionViewCell, !self.isEditMode {
+        if let cell: SpaceCollcetionViewCell = collectionView.cellForItem(at: indexPath) as? SpaceCollcetionViewCell, !self.isEditMode {
             self.collectionView?.deselectItem(at: indexPath, animated: false)
-            if let group = cell.groupModel {
-                PopupOptionView.buddyOptionPopUp(groupModel: group) { (action: String) in
+            if let space = cell.spaceModel {
+                PopupOptionView.buddyOptionPopUp(spaceModel: space) { (action: String) in
                     if(action == "Call"){
-                        self.callActionTo(group)
+                        self.callActionTo(space)
                     }else if(action == "Message"){
-                        self.messageActionTo(group)
+                        self.messageActionTo(space)
                     }
                 }
             }

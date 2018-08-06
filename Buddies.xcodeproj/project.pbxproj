@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		10259AC42061FE3B00843619 /* RoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC22061FE3B00843619 /* RoomModel.swift */; };
+		10215851210EE18500D93F3A /* SpaceListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10215850210EE18500D93F3A /* SpaceListTableCell.swift */; };
+		10259AC42061FE3B00843619 /* SpaceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC22061FE3B00843619 /* SpaceModel.swift */; };
 		10259AC52061FE3B00843619 /* BDSMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC32061FE3B00843619 /* BDSMessage.swift */; };
 		10372ED2208D6DBA000B9300 /* MessageParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 10372ECA208D6DB9000B9300 /* MessageParser.m */; };
 		10372ED3208D6DBA000B9300 /* NSAttributedString+Extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 10372ECF208D6DB9000B9300 /* NSAttributedString+Extensions.m */; };
@@ -30,7 +31,7 @@
 		10DBFF391F3BE35A00209DEC /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF091F3BE35A00209DEC /* MainViewController.swift */; };
 		10DBFF3A1F3BE35A00209DEC /* PeopleListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF0A1F3BE35A00209DEC /* PeopleListViewController.swift */; };
 		10DBFF3B1F3BE35A00209DEC /* SpaceListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF0B1F3BE35A00209DEC /* SpaceListViewController.swift */; };
-		10DBFF3C1F3BE35A00209DEC /* RoomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF0C1F3BE35A00209DEC /* RoomViewController.swift */; };
+		10DBFF3C1F3BE35A00209DEC /* SpaceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF0C1F3BE35A00209DEC /* SpaceViewController.swift */; };
 		10DBFF3D1F3BE35A00209DEC /* TeamListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF0D1F3BE35A00209DEC /* TeamListViewController.swift */; };
 		10DBFF3F1F3BE35A00209DEC /* AppearanceSetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF101F3BE35A00209DEC /* AppearanceSetter.swift */; };
 		10DBFF401F3BE35A00209DEC /* Array+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF111F3BE35A00209DEC /* Array+Ext.swift */; };
@@ -45,17 +46,14 @@
 		10DBFF491F3BE35A00209DEC /* UIView+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1A1F3BE35A00209DEC /* UIView+Ext.swift */; };
 		10DBFF4A1F3BE35A00209DEC /* UIWindow+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1B1F3BE35A00209DEC /* UIWindow+Ext.swift */; };
 		10DBFF4C1F3BE35A00209DEC /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1E1F3BE35A00209DEC /* Contact.swift */; };
-		10DBFF4D1F3BE35A00209DEC /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1F1F3BE35A00209DEC /* Group.swift */; };
 		10DBFF501F3BE35A00209DEC /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF221F3BE35A00209DEC /* User.swift */; };
 		10DBFF511F3BE35A00209DEC /* ContactCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF261F3BE35A00209DEC /* ContactCollectionViewCell.swift */; };
-		10DBFF521F3BE35A00209DEC /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF271F3BE35A00209DEC /* CreateGroupView.swift */; };
-		10DBFF531F3BE35A00209DEC /* CreateRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF281F3BE35A00209DEC /* CreateRoomView.swift */; };
+		10DBFF521F3BE35A00209DEC /* CreateSpaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF271F3BE35A00209DEC /* CreateSpaceView.swift */; };
 		10DBFF541F3BE35A00209DEC /* GroupCollcetionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF291F3BE35A00209DEC /* GroupCollcetionViewCell.swift */; };
 		10DBFF551F3BE35A00209DEC /* KTInputBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF2A1F3BE35A00209DEC /* KTInputBox.swift */; };
 		10DBFF561F3BE35A00209DEC /* MessageTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF2B1F3BE35A00209DEC /* MessageTableCell.swift */; };
 		10DBFF571F3BE35A00209DEC /* PeopleListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF2C1F3BE35A00209DEC /* PeopleListTableCell.swift */; };
 		10DBFF581F3BE35A00209DEC /* PopupOptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF2D1F3BE35A00209DEC /* PopupOptionView.swift */; };
-		10DBFF591F3BE35A00209DEC /* RoomListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF2E1F3BE35A00209DEC /* RoomListTableCell.swift */; };
 		10DBFF5B1F3BE35A00209DEC /* TeamListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF301F3BE35A00209DEC /* TeamListTableCell.swift */; };
 		10DBFF5C1F3BE35A00209DEC /* UserOptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF311F3BE35A00209DEC /* UserOptionView.swift */; };
 		20D2DF1D1F034A8A00902BF7 /* PushKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20D2DF1C1F034A8A00902BF7 /* PushKit.framework */; };
@@ -63,7 +61,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		10259AC22061FE3B00843619 /* RoomModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomModel.swift; sourceTree = "<group>"; };
+		10215850210EE18500D93F3A /* SpaceListTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpaceListTableCell.swift; sourceTree = "<group>"; };
+		10259AC22061FE3B00843619 /* SpaceModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpaceModel.swift; sourceTree = "<group>"; };
 		10259AC32061FE3B00843619 /* BDSMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BDSMessage.swift; sourceTree = "<group>"; };
 		10372EC9208D6DB8000B9300 /* MessageParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageParser.h; sourceTree = "<group>"; };
 		10372ECA208D6DB9000B9300 /* MessageParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageParser.m; sourceTree = "<group>"; };
@@ -91,7 +90,7 @@
 		10DBFF091F3BE35A00209DEC /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		10DBFF0A1F3BE35A00209DEC /* PeopleListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PeopleListViewController.swift; sourceTree = "<group>"; };
 		10DBFF0B1F3BE35A00209DEC /* SpaceListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpaceListViewController.swift; sourceTree = "<group>"; };
-		10DBFF0C1F3BE35A00209DEC /* RoomViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomViewController.swift; sourceTree = "<group>"; };
+		10DBFF0C1F3BE35A00209DEC /* SpaceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpaceViewController.swift; sourceTree = "<group>"; };
 		10DBFF0D1F3BE35A00209DEC /* TeamListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TeamListViewController.swift; sourceTree = "<group>"; };
 		10DBFF101F3BE35A00209DEC /* AppearanceSetter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppearanceSetter.swift; sourceTree = "<group>"; };
 		10DBFF111F3BE35A00209DEC /* Array+Ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Array+Ext.swift"; sourceTree = "<group>"; };
@@ -107,17 +106,14 @@
 		10DBFF1B1F3BE35A00209DEC /* UIWindow+Ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIWindow+Ext.swift"; sourceTree = "<group>"; };
 		10DBFF1C1F3BE35A00209DEC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		10DBFF1E1F3BE35A00209DEC /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
-		10DBFF1F1F3BE35A00209DEC /* Group.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		10DBFF221F3BE35A00209DEC /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		10DBFF261F3BE35A00209DEC /* ContactCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactCollectionViewCell.swift; sourceTree = "<group>"; };
-		10DBFF271F3BE35A00209DEC /* CreateGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
-		10DBFF281F3BE35A00209DEC /* CreateRoomView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateRoomView.swift; sourceTree = "<group>"; };
+		10DBFF271F3BE35A00209DEC /* CreateSpaceView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateSpaceView.swift; sourceTree = "<group>"; };
 		10DBFF291F3BE35A00209DEC /* GroupCollcetionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupCollcetionViewCell.swift; sourceTree = "<group>"; };
 		10DBFF2A1F3BE35A00209DEC /* KTInputBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KTInputBox.swift; sourceTree = "<group>"; };
 		10DBFF2B1F3BE35A00209DEC /* MessageTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageTableCell.swift; sourceTree = "<group>"; };
 		10DBFF2C1F3BE35A00209DEC /* PeopleListTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PeopleListTableCell.swift; sourceTree = "<group>"; };
 		10DBFF2D1F3BE35A00209DEC /* PopupOptionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopupOptionView.swift; sourceTree = "<group>"; };
-		10DBFF2E1F3BE35A00209DEC /* RoomListTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomListTableCell.swift; sourceTree = "<group>"; };
 		10DBFF301F3BE35A00209DEC /* TeamListTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TeamListTableCell.swift; sourceTree = "<group>"; };
 		10DBFF311F3BE35A00209DEC /* UserOptionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserOptionView.swift; sourceTree = "<group>"; };
 		10DBFF5D1F3BE3DB00209DEC /* Buddies-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Buddies-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -177,11 +173,11 @@
 				10DBFF261F3BE35A00209DEC /* ContactCollectionViewCell.swift */,
 				10DBFF291F3BE35A00209DEC /* GroupCollcetionViewCell.swift */,
 				10DBFF2C1F3BE35A00209DEC /* PeopleListTableCell.swift */,
-				10DBFF2E1F3BE35A00209DEC /* RoomListTableCell.swift */,
 				10DBFF301F3BE35A00209DEC /* TeamListTableCell.swift */,
 				10DBFF2B1F3BE35A00209DEC /* MessageTableCell.swift */,
 				105B4507206B617300F4599A /* AssetCollectionCell.swift */,
 				105B450B206CE84B00F4599A /* SelectedAssetCollectionCell.swift */,
+				10215850210EE18500D93F3A /* SpaceListTableCell.swift */,
 			);
 			name = TableCells;
 			sourceTree = "<group>";
@@ -189,8 +185,7 @@
 		10659CE41F3BE64E00D39C32 /* CustomizedView */ = {
 			isa = PBXGroup;
 			children = (
-				10DBFF271F3BE35A00209DEC /* CreateGroupView.swift */,
-				10DBFF281F3BE35A00209DEC /* CreateRoomView.swift */,
+				10DBFF271F3BE35A00209DEC /* CreateSpaceView.swift */,
 				10DBFF2A1F3BE35A00209DEC /* KTInputBox.swift */,
 				10DBFF2D1F3BE35A00209DEC /* PopupOptionView.swift */,
 				10DBFF311F3BE35A00209DEC /* UserOptionView.swift */,
@@ -227,7 +222,7 @@
 				10DBFF0B1F3BE35A00209DEC /* SpaceListViewController.swift */,
 				10DBFF0D1F3BE35A00209DEC /* TeamListViewController.swift */,
 				10DBFF0A1F3BE35A00209DEC /* PeopleListViewController.swift */,
-				10DBFF0C1F3BE35A00209DEC /* RoomViewController.swift */,
+				10DBFF0C1F3BE35A00209DEC /* SpaceViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -265,9 +260,8 @@
 			isa = PBXGroup;
 			children = (
 				10259AC32061FE3B00843619 /* BDSMessage.swift */,
-				10259AC22061FE3B00843619 /* RoomModel.swift */,
+				10259AC22061FE3B00843619 /* SpaceModel.swift */,
 				10DBFF1E1F3BE35A00209DEC /* Contact.swift */,
-				10DBFF1F1F3BE35A00209DEC /* Group.swift */,
 				10DBFF221F3BE35A00209DEC /* User.swift */,
 				105B4509206CACA300F4599A /* BDAssetModel.swift */,
 			);
@@ -352,7 +346,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "spark-ios-sdk";
 				TargetAttributes = {
 					206281F51ED1782C007E28F9 = {
@@ -504,11 +498,11 @@
 				10DBFF501F3BE35A00209DEC /* User.swift in Sources */,
 				10DBFF361F3BE35A00209DEC /* Constants.swift in Sources */,
 				10DBFF3B1F3BE35A00209DEC /* SpaceListViewController.swift in Sources */,
-				10DBFF531F3BE35A00209DEC /* CreateRoomView.swift in Sources */,
 				10DBFF461F3BE35A00209DEC /* UIFont+Ext.swift in Sources */,
 				10372ED2208D6DBA000B9300 /* MessageParser.m in Sources */,
 				105BB1D41F413B61005B740F /* BuddiesCallViewController.swift in Sources */,
 				10DBFF451F3BE35A00209DEC /* UIColor+Ext.swift in Sources */,
+				10215851210EE18500D93F3A /* SpaceListTableCell.swift in Sources */,
 				10DBFF471F3BE35A00209DEC /* UIImage+Ext.swift in Sources */,
 				105B4508206B617300F4599A /* AssetCollectionCell.swift in Sources */,
 				10DBFF431F3BE35A00209DEC /* MKTextField.swift in Sources */,
@@ -517,11 +511,9 @@
 				10372ED3208D6DBA000B9300 /* NSAttributedString+Extensions.m in Sources */,
 				10DBFF491F3BE35A00209DEC /* UIView+Ext.swift in Sources */,
 				10DBFF391F3BE35A00209DEC /* MainViewController.swift in Sources */,
-				10DBFF3C1F3BE35A00209DEC /* RoomViewController.swift in Sources */,
-				10DBFF591F3BE35A00209DEC /* RoomListTableCell.swift in Sources */,
+				10DBFF3C1F3BE35A00209DEC /* SpaceViewController.swift in Sources */,
 				10DBFF401F3BE35A00209DEC /* Array+Ext.swift in Sources */,
 				10DBFF481F3BE35A00209DEC /* UILabel+Ext.swift in Sources */,
-				10DBFF4D1F3BE35A00209DEC /* Group.swift in Sources */,
 				10372ED4208D6DBA000B9300 /* RuntimeHelpers.m in Sources */,
 				10DBFF411F3BE35A00209DEC /* CGPoint+Ext.swift in Sources */,
 				10DBFF4A1F3BE35A00209DEC /* UIWindow+Ext.swift in Sources */,
@@ -529,7 +521,7 @@
 				105B450C206CE84B00F4599A /* SelectedAssetCollectionCell.swift in Sources */,
 				10DBFF561F3BE35A00209DEC /* MessageTableCell.swift in Sources */,
 				10372ED5208D6DBA000B9300 /* GTMNSMutableString+HTML.m in Sources */,
-				10DBFF521F3BE35A00209DEC /* CreateGroupView.swift in Sources */,
+				10DBFF521F3BE35A00209DEC /* CreateSpaceView.swift in Sources */,
 				10DBFF5C1F3BE35A00209DEC /* UserOptionView.swift in Sources */,
 				10DBFF5B1F3BE35A00209DEC /* TeamListTableCell.swift in Sources */,
 				10DBFF3D1F3BE35A00209DEC /* TeamListViewController.swift in Sources */,
@@ -537,7 +529,7 @@
 				10259AC52061FE3B00843619 /* BDSMessage.swift in Sources */,
 				105B450A206CACA300F4599A /* BDAssetModel.swift in Sources */,
 				10DBFF421F3BE35A00209DEC /* KTActivityIndicator.swift in Sources */,
-				10259AC42061FE3B00843619 /* RoomModel.swift in Sources */,
+				10259AC42061FE3B00843619 /* SpaceModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -577,6 +569,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -584,6 +577,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -634,6 +628,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -641,6 +636,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;

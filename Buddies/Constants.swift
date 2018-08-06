@@ -198,7 +198,7 @@ class Constants {
         class Message{
             static let PersonMention = UIColor.MKColor.Blue.P900
             
-            static let GroupMention = UIColor.MKColor.LightGreen.P900
+            static let SpaceMention = UIColor.MKColor.Green.P900
             
             static let Link = UIColor.MKColor.Blue.P600
             

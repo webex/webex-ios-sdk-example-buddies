@@ -58,9 +58,9 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     private var mentionedList: [Contact] = []
     private var mentionPositions : [Range<Int>] = [Range<Int>]()
     public var isInputViewInCall : Bool = false
+    private var navController: UINavigationController?
     
-    
-    init(frame: CGRect , tableView: UITableView, contacts: [Contact]? = nil){
+    init(frame: CGRect , tableView: UITableView, contacts: [Contact]? = nil, navController: UINavigationController? = nil){
         self.tableView = tableView
         super.init(frame: frame)
         self.setUpSubViews()
@@ -68,6 +68,9 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillDisappear(notification:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         if let contacts = contacts{
             self.contactList = contacts
+        }
+        if let navCon = navController {
+            self.navController = navCon
         }
     }
     
@@ -191,7 +194,14 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         let imagePicker =  UIImagePickerController()
         imagePicker.delegate = self
         imagePicker.sourceType = .camera
-        UIApplication.shared.keyWindow?.rootViewController?.present(imagePicker, animated: true, completion: nil)
+        if User.CurrentUser.loginType == .User {
+            UIApplication.shared.keyWindow?.rootViewController?.present(imagePicker, animated: true, completion: nil)
+        }
+        else {
+            if let nav = self.navController {
+                nav.present(imagePicker, animated: true, completion: nil)
+            }
+        }
     }
     
     @objc private func addImageButtnClicked(){
@@ -323,10 +333,10 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
             self.mentionTableView?.backgroundColor = backColor
             self.mentionTableView?.delegate = self
             self.mentionTableView?.dataSource = self
-            if let _ = self.contactList.filter({$0.name == "ALL"}).first{
+            if let _ = self.contactList.filter({$0.name == "All"}).first{
                 
             }else{
-                let allMention = Contact(id: "", name: "ALL", email: "")
+                let allMention = Contact(id: "", name: "All", email: "")
                 self.contactList.insert(allMention, at: 0)
             }
             self.attachmentBackView?.addSubview(self.mentionTableView!)

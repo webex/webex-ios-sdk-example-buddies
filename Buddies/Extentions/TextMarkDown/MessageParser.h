@@ -21,9 +21,9 @@ extern NSString *const kMessageParserBlockPaddingKey;
 extern NSString *const kConversationMessageMentionTagName;
 extern NSString *const kConversationMessageMentionIDKey;
 extern NSString *const kConversationMessageMentionTypeKey ;
-extern NSString *const kConversationMessageMentionGroupTypeKey;
+extern NSString *const kConversationMessageMentionSpaceTypeKey;
 extern NSString *const kConversationMessageMentionTypePersonValue;
-extern NSString *const kConversationMessageMentionTypeGroupMentionValue;
+extern NSString *const kConversationMessageMentionTypeSpaceMentionValue;
 
 
 @interface MessageParser : NSObject

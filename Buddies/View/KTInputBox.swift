@@ -16,24 +16,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     
     public var title: String?
     
-    public var message: String? {
-        didSet {
-            //            if (self.messageLabel != nil) {
-            //                self.messageLabel.text = self.message as? String;
-            //                let size = self.messageLabel.reCenter();
-            //                var frame = self.buttonBackgroundView.frame;
-            //                frame.y = frame.y + size.height;
-            //                self.buttonBackgroundView.frame = frame;
-            //                frame = self.visualEffectView!.frame;
-            //                frame.size.height = frame.height + size.height;
-            //                self.visualEffectView!.frame = frame;
-            //                frame = self.frame;
-            //                frame.size.height = frame.height + size.height;
-            //                self.frame = frame;
-            //                self.resetFrame(false);
-            //            }
-        }
-    }
+    public var message: String?
     
     public var messageColor:UIColor? {
         didSet {
@@ -81,7 +64,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     
     private var converView:KTVisualEffectView!;
     
-    private var _group = ConstraintGroup();
+    private var _space = ConstraintGroup();
     
     class func alert(error:Error) {
         KTInputBox.alert(title: "Oops", message:  error.localizedDescription);
@@ -157,7 +140,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
                 view.height == height;
                 view.centerX == view.superview!.centerX;
             }
-            constrain(self, replace: self._group) { view in
+            constrain(self, replace: self._space) { view in
                 view.centerY == view.superview!.centerY;
             }
             UIView.animate(withDuration: 0.15, animations: { () -> Void in
@@ -342,7 +325,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     
     @objc func submitButtonTapped () {
         if let block = self.onSubmit {
-            let values:[String] = self.elements.flatMap { element in
+            let values:[String] = self.elements.compactMap { element in
                 if let textField = element as? UITextField {
                     return textField.text;
                 }
@@ -403,7 +386,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
             else {
                 distance = bottom - keyboardFrame.top + 20;
             }
-            constrain(self, replace: self._group) { view in
+            constrain(self, replace: self._space) { view in
                 view.centerY == view.superview!.centerY - distance;
             }
             self._animate(notification);
@@ -412,7 +395,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     @objc
     func keyboardDidHide (notification: NSNotification) {
         if let _ = self.superview {
-            constrain(self, replace: self._group) { view in
+            constrain(self, replace: self._space) { view in
                 view.centerY == view.superview!.centerY;
             }
             self._animate(notification);
@@ -464,9 +447,7 @@ class KTVisualEffectView : UIVisualEffectView {
     }
     
     private func commonInit() {
-//        self.backgroundColor = UIColor(white: 0.8, alpha: 0.15)
         self.backgroundColor = UIColor.clear
-
         self.layer.masksToBounds = true
         let offset = 20.0
         let motionEffectsX = UIInterpolatingMotionEffect(keyPath: "center.x", type: .tiltAlongHorizontalAxis)
@@ -475,8 +456,8 @@ class KTVisualEffectView : UIVisualEffectView {
         let motionEffectsY = UIInterpolatingMotionEffect(keyPath: "center.y", type: .tiltAlongVerticalAxis)
         motionEffectsY.maximumRelativeValue = offset
         motionEffectsY.minimumRelativeValue = -offset
-        let group = UIMotionEffectGroup()
-        group.motionEffects = [motionEffectsX, motionEffectsY]
-        self.addMotionEffect(group)
+        let space = UIMotionEffectGroup()
+        space.motionEffects = [motionEffectsX, motionEffectsY]
+        self.addMotionEffect(space)
     }
 }

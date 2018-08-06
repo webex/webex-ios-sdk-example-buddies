@@ -20,43 +20,35 @@
 
 import UIKit
 import WebexSDK
-class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate {
+
+class AddContactView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate{
     
     // MARK: - UI variables
-    var groupCreateBlock: ((Group)->())?
+    var spaceCreatedBlock: ((SpaceModel, Bool)->())?
     
     private var backView : UIView?
     private var addedCollectionView: UICollectionView?
-    var buddiesCollectionView: UICollectionView?
+    private var buddiesCollectionView: UICollectionView?
     private var peopleTableView: UITableView?
     private var segmentControll: UISegmentedControl?
     private var searchBarBackView: UIView?
     private var searchBar: UISearchBar?
-    private var groupNameTextFeild: MKTextField?
+    private var spaceNameTextFeild: MKTextField?
     private var addedContactList: [Contact] = []
     private var peopleList : [Contact] = []
     private var viewWidth = 0
     private var viewHeight = 0
     private var backViewWidth = 0
     private var backViewHeight = 0
-
+    
     enum SegmentType : Int{
         case Buddies = 0
         case People = 1
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.viewWidth = Int(frame.size.width)
-        self.viewHeight = Int(frame.size.height)
-        self.backViewWidth = viewWidth
-        self.backViewHeight = viewHeight
-        self.setUpSubViews()
-    }
-    
-    // MARK: - WebexSDK: listing people
+    // MARK: - WebexSDK: listing people/ create space
     func requetPeopleList(searchStr: String){
-        KTActivityIndicator.singleton.show(title: "Loading")
+        KTActivityIndicator.singleton.show(title: "Loading...")
         if let email = EmailAddress.fromString(searchStr) {
             WebexSDK?.people.list(email: email, max: 20) {
                 (response: ServiceResponse<[Person]>) in
@@ -75,7 +67,6 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
                     break
                 }
             }
-            
         } else {
             WebexSDK?.people.list(displayName: searchStr, max: 20) {
                 (response: ServiceResponse<[Person]>) in
@@ -96,11 +87,73 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
             }
         }
     }
-
+    func requestCreateSpace(){
+//        let localSpaceId = Space.getSpaceSpaceId(contacts: self.addedContactList)
+//        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localSpaceId: localSpaceId){
+//            if(self.spaceCreatedBlock != nil){
+//                self.spaceCreatedBlock!(spaceModel,false)
+//            }
+//            self.disMiss()
+//            return;
+//        }
+        var spaceTitle = self.spaceNameTextFeild?.text
+        KTActivityIndicator.singleton.show(title: "Creating")
+//        if(spaceTitle?.length == 0){
+//            spaceTitle = Space.getSpaceSpaceName(contacts: self.addedContactList)
+//        }
+        WebexSDK?.spaces.create(title: spaceTitle!) { (response: ServiceResponse<Space>) in
+            switch response.result {
+            case .success(let value):
+                if let createdSpace = SpaceModel(space: value){
+                    let threahSpace = DispatchGroup()
+                    for contact in self.addedContactList{
+                        DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
+                            WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                                switch response.result{
+                                case .success(_):
+                                    createdSpace.spaceMembers?.append(contact)
+                                    break
+                                case .failure(let error):
+                                    KTInputBox.alert(error: error)
+                                    break
+                                }
+                            })
+                        }))
+                    }
+//                    createdSpace.localSpaceId = localSpaceId
+                    threahSpace.notify(queue: DispatchQueue.global(), execute: {
+                        DispatchQueue.main.async {
+                            KTActivityIndicator.singleton.hide()
+                            if(self.spaceCreatedBlock != nil){
+                                self.spaceCreatedBlock!(createdSpace, true)
+                            }
+                            self.disMiss()
+                        }
+                    })
+                }
+                break
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    KTActivityIndicator.singleton.hide()
+                    KTInputBox.alert(error: error)
+                }
+                break
+            }
+        }
+    }
     
+    // MARK: - UI Implementation
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.viewWidth = Int(frame.size.width)
+        self.viewHeight = Int(frame.size.height)
+        self.backViewWidth = viewWidth - 60
+        self.backViewHeight = viewHeight - 60
+        self.setUpSubViews()
+    }
     
-    // MARK: - UI Implemetation
     func setUpSubViews(){
+        self.setUpBlurView()
         self.setUpTitleView()
         self.setUpAddedCollectionView()
         self.setUpSegmentView()
@@ -108,9 +161,15 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         self.setUPBottomBtnView()
         
     }
+    func setUpBlurView(){
+        let blurView = UIVisualEffectView(frame: CGRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
+        blurView.effect = UIBlurEffect(style: .extraLight)
+        blurView.alpha = 0.7
+        self.addSubview(blurView)
+    }
     func setUpTitleView(){
-        
-        self.backView = UIView(frame: CGRect(x: 0, y: 0, width: backViewWidth, height: backViewHeight))
+     
+        self.backView = UIView(frame: CGRect(x: 30, y: 30, width: backViewWidth, height: backViewHeight))
         self.backView?.backgroundColor = UIColor.white
         self.backView?.setShadow(color: UIColor.gray, radius: 0.5, opacity: 0.5, offsetX: 0, offsetY: 0)
         self.addSubview(self.backView!)
@@ -118,22 +177,22 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         let titleLabel = UILabel(frame: CGRect(x: 15, y: 10, width: backViewWidth-30, height: 30))
         titleLabel.font = Constants.Font.InputBox.Title
         titleLabel.textColor = Constants.Color.Theme.DarkControl
-        titleLabel.text = "New Group"
+        titleLabel.text = "New Space"
         titleLabel.textAlignment = .center
         self.backView?.addSubview(titleLabel)
         
-        self.groupNameTextFeild = MKTextField(frame: CGRect(x: 30, y: 40, width: backViewWidth-60, height: 40))
-        self.groupNameTextFeild?.delegate = self;
-        self.groupNameTextFeild?.textAlignment = .center
-        self.groupNameTextFeild?.tintColor = Constants.Color.Theme.Main;
-        self.groupNameTextFeild?.layer.borderColor = UIColor.clear.cgColor
-        self.groupNameTextFeild?.font = Constants.Font.InputBox.Input
-        self.groupNameTextFeild?.bottomBorderEnabled = true;
-        self.groupNameTextFeild?.floatingPlaceholderEnabled = false
-        self.groupNameTextFeild?.rippleEnabled = false;
-        self.groupNameTextFeild?.placeholder = "input group name"
-        self.groupNameTextFeild?.returnKeyType = .done;
-        self.backView?.addSubview(self.groupNameTextFeild!)
+        self.spaceNameTextFeild = MKTextField(frame: CGRect(x: 30, y: 40, width: backViewWidth-60, height: 40))
+        self.spaceNameTextFeild?.delegate = self;
+        self.spaceNameTextFeild?.textAlignment = .center
+        self.spaceNameTextFeild?.tintColor = Constants.Color.Theme.Main;
+        self.spaceNameTextFeild?.layer.borderColor = UIColor.clear.cgColor
+        self.spaceNameTextFeild?.font = Constants.Font.InputBox.Input
+        self.spaceNameTextFeild?.bottomBorderEnabled = true;
+        self.spaceNameTextFeild?.floatingPlaceholderEnabled = false
+        self.spaceNameTextFeild?.rippleEnabled = false;
+        self.spaceNameTextFeild?.placeholder = "input space name"
+        self.spaceNameTextFeild?.returnKeyType = .done;
+        self.backView?.addSubview(self.spaceNameTextFeild!)
     }
     
     func setUpAddedCollectionView(){
@@ -220,17 +279,30 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         line.backgroundColor = Constants.Color.Theme.DarkControl.cgColor
         btnBackView.layer .addSublayer(line)
         
-        let createBtn = UIButton(frame: CGRect(x: 0.0, y: 0.0, width: Double(backViewWidth), height: 50.0))
-        createBtn.setTitle("Create New Group", for: .normal)
+        let cancelBtn = UIButton(frame: CGRect(x: 0.0, y: 0.0, width: Double(backViewWidth/2), height: 50.0))
+        cancelBtn.setTitle("Cancel", for: .normal)
+        cancelBtn.setTitleColor(Constants.Color.Theme.DarkControl, for: .normal)
+        cancelBtn.addTarget(self, action: #selector(disMiss), for: .touchUpInside)
+        cancelBtn.titleLabel?.font = Constants.Font.InputBox.Button
+        btnBackView.addSubview(cancelBtn)
+        
+        let createBtn = UIButton(frame: CGRect(x: Double(backViewWidth/2), y: 0.0, width: Double(backViewWidth/2), height: 50.0))
+        createBtn.setTitle("Create", for: .normal)
         createBtn.setTitleColor(Constants.Color.Theme.Main, for: .normal)
-        createBtn.addTarget(self, action: #selector(createGroupBtnClicked), for: .touchUpInside)
+        createBtn.addTarget(self, action: #selector(createSpaceBtnClicked), for: .touchUpInside)
         createBtn.titleLabel?.font = Constants.Font.InputBox.Button
         btnBackView.addSubview(createBtn)
+        
+        let line1 = CALayer()
+        line1.frame = CGRect(x: Double(backViewWidth)/2, y: 0.0, width:0.5, height: 50)
+        line1.backgroundColor = Constants.Color.Theme.DarkControl.cgColor
+        btnBackView.layer .addSublayer(line1)
         
         self.backView?.addSubview(btnBackView)
     }
     
-    // MARK: UI Logic Implementation
+    
+    // MARK: Page Logic Implementation
     func checkAddedPeopleList(choosedContact: Contact)->Bool{
         let email = choosedContact.email
         if(self.addedContactList.find(equality: { $0.email == email }) == nil){
@@ -239,21 +311,41 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
             return false
         }
     }
-
     
-    @objc private func createGroupBtnClicked(){
-        let groupTitle = self.groupNameTextFeild?.text
-        let newGroup = Group(contacts: self.addedContactList, name: groupTitle)
-        if(self.groupCreateBlock != nil){
-            self.groupCreateBlock!(newGroup)
+    
+    func popUpOnWindow(){
+        self.backView?.alpha = 0.0
+        self.backView?.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        ((UIApplication.shared.delegate) as! AppDelegate).window?.addSubview(self)
+        UIView.animate(withDuration: 0.2, animations: {
+            UIView.setAnimationCurve(.easeInOut)
+            self.backView?.alpha = 1.0
+            self.backView?.transform = CGAffineTransform(scaleX: 1, y: 1)
+        }) { (_) in
+            
         }
+
+    }
+    @objc func disMiss(){
+        UIView.animate(withDuration: 0.2, animations: {
+            UIView.setAnimationCurve(.easeInOut)
+            self.alpha = 0.0
+            self.backView?.alpha = 0.0
+            self.backView?.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }) { (_) in
+            self.removeFromSuperview()
+        }
+    }
+    
+    @objc func createSpaceBtnClicked(){
+        self.requestCreateSpace()
     }
     
     
     // MARK: UIcollectionView Delegate
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if(collectionView == self.buddiesCollectionView){
-            return User.CurrentUser.getSingleMemberGroup().count
+            return User.CurrentUser.getSingleMemberSpace().count
         }else{
             return  (self.addedContactList.count)
         }
@@ -261,7 +353,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if(collectionView == self.buddiesCollectionView){
-            let contact = User.CurrentUser.getSingleMemberGroup()[indexPath.item][0]
+            let contact = User.CurrentUser[indexPath.item]?.contact
             let cell: ContactCollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "BuddiesCollectionViewCell", for: indexPath) as! ContactCollectionViewCell
             cell.updateUIElements(cellWidth: (backViewWidth-20)/3, showDeleteBtn: false, contact: contact, onDelete: nil)
             return cell
@@ -290,7 +382,6 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
                 _ = self.addedContactList.removeObject(equality: { $0.email == email })
                 self.addedCollectionView?.reloadData()
             }else{
-                
                 if(self.checkAddedPeopleList(choosedContact: cell.contact!)){
                     cell.contact?.isChoosed = true
                     cell.updateSelection()
@@ -300,7 +391,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
             }
         }
     }
-    
+
     // MARK: - UITableView Delegate
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 40
@@ -309,7 +400,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         if(self.searchBar == nil){
             self.searchBarBackView = UIView(frame: CGRect(x: 0, y: 0, width: (self.backView?.frame.size.width)!, height: 40))
             self.searchBarBackView?.backgroundColor = UIColor.white
-            self.searchBar = UISearchBar(frame: CGRect(0, 10, Constants.Size.screenWidth-30, 20))
+            self.searchBar = UISearchBar(frame: CGRect(0, 10, Constants.Size.screenWidth-90, 20))
             self.searchBar?.tintColor = Constants.Color.Theme.Main
             self.searchBar?.backgroundImage = UIImage()
             self.searchBar?.delegate = self
@@ -350,7 +441,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
             }
         }
     }
-    
+
     // MARK: SearchBar Delegate
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
@@ -363,13 +454,17 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         searchBar.resignFirstResponder()
         searchBar.text = ""
     }
-    
+
     // MARK: TextField Delegate
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
     }
+    
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
+
+

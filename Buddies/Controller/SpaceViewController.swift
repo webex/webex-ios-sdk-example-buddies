@@ -27,10 +27,9 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     
     // MARK: UI variables
     private var messageTableView: UITableView?
-    public var spaceModel: SpaceModel?
+    public var spaceModel: SpaceModel
     private var spaceMemberTableView: UITableView?
     private var maskView: UIView?
-    private var spaceMeberList: [Membership] = []
     private var messageList: [BDSMessage] = []
     private let messageTableViewHeight = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight-Constants.Size.navHeight-74) : (Constants.Size.screenHeight-Constants.Size.navHeight-40)
     private var tableTap: UIGestureRecognizer?
@@ -41,21 +40,60 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
 
     // MARK: - Life Circle
     init(space: SpaceModel){
-        super.init()
         self.spaceModel = space
+        super.init()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setUpTopNavigationView()
-        self.setUpSupViews()
-        self.requestMessageData()
-
+        self.setUpMessageTableView()
+        if self.spaceModel.type == SpaceType.group, self.spaceModel.spaceMembers.isEmpty {
+            self.requestRoomMembers()
+        }
+        else {
+            self.requestMessageData()
+        }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        self.callVC = nil
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         if let buddiesInputView = self.buddiesInputView{
             buddiesInputView.selectedAssetCollectionView?.removeFromSuperview()
+        }
+    }
+    
+    func requestRoomMembers(){
+        self.topIndicator?.startAnimating()
+        WebexSDK?.memberships.list(spaceId: self.spaceModel.spaceId) { (response: ServiceResponse<[Membership]>) in
+            switch response.result {
+            case .success(let value):
+                let threahSpace = DispatchGroup()
+                let members = value.filter({!($0.personEmail?.toString().contains("bot@cisco.com"))!})
+                members.forEach{ membership in
+                    DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
+                        WebexSDK?.people.get(personId: membership.personId!, completionHandler: { (response: ServiceResponse<Person>) in
+                            if let person = response.result.data {
+                                let contact = Contact(person: person)
+                                self.spaceModel.spaceMembers.append(contact!)
+                            }
+                        })
+                    }))
+                }
+                threahSpace.notify(queue: DispatchQueue.global(), execute: {
+                    DispatchQueue.main.async {
+                        self.requestMessageData()
+                    }
+                })
+                break
+            case .failure:
+                self.topIndicator?.stopAnimating()
+                self.updateSupViews()
+                break
+            }
         }
     }
     
@@ -70,19 +108,23 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
             })
         }
     }
+    
     // MARK: - WebexSDK: listing member in a space
     func requestMessageList(){
-        if let spaceId = self.spaceModel?.spaceId , spaceId != "" {
-            self.topIndicator?.startAnimating()
-            WebexSDK?.messages.list(spaceId: spaceId, before: nil, max: 50, mentionedPeople: nil, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
+        self.topIndicator?.startAnimating()
+        if self.spaceModel.spaceId != "" {
+            WebexSDK?.messages.list(spaceId: self.spaceModel.spaceId, before: nil, max: 50, mentionedPeople: nil, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
                 self.topIndicator?.stopAnimating()
-                self.updateNavigationTitle()
+                self.updateSupViews()
                 switch response.result {
                 case .success(let value):
                     self.messageList.removeAll()
                     for message in value{
                         let tempMessage = BDSMessage(messageModel: message)
-                        tempMessage?.localGroupId = self.spaceModel?.localGroupId
+                        if let idx = self.spaceModel.spaceMembers.index(where: {$0.id == message.personId}) {
+                            tempMessage?.avator = self.spaceModel.spaceMembers[idx].avatorUrl
+                        }
+                        tempMessage?.localSpaceId = self.spaceModel.localSpaceId
                         tempMessage?.messageState = MessageState.received
                         self.messageList.insert(tempMessage!, at: 0)
                     }
@@ -98,49 +140,32 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
                 }
             })
         }else{
-            self.updateNavigationTitle()
-        }
-    }
-    
-    // MARK: - WebexSDK: listing member in a space
-    func requestSpaceMemberList(){
-        KTActivityIndicator.singleton.show(title: "Loading")
-        WebexSDK?.memberships.list(spaceId: (self.spaceModel?.spaceId)!) { (response: ServiceResponse<[Membership]>) in
-            KTActivityIndicator.singleton.hide()
-            switch response.result {
-            case .success(let value):
-                self.spaceMeberList.removeAll()
-                for memberShip in value{
-                    self.spaceMeberList.append(memberShip)
-                }
-                self.spaceMemberTableView?.reloadData()
-                break
-            case .failure:
-                break
-            }
+            self.topIndicator?.stopAnimating()
+            self.updateSupViews()
         }
     }
     
     // MARK: - WebexSDK: post message | make call to a space
     func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil, _ menpositions:[Range<Int>]){
         let tempMessageModel = BDSMessage()
-        tempMessageModel.spaceId = self.spaceModel?.spaceId
+        tempMessageModel.spaceId = self.spaceModel.spaceId
         tempMessageModel.messageState = MessageState.willSend
         tempMessageModel.text = text
-        if self.spaceModel?.type == SpaceType.direct{
-            if let personEmail = self.spaceModel?.spaceMembers![0].email,
-                let personId = self.spaceModel?.spaceMembers![0].id{
+        if self.spaceModel.type == SpaceType.direct {
+            if let buddy = self.spaceModel.contact {
+                let personEmail = buddy.email
+                let personId = buddy.id
                 tempMessageModel.toPersonEmail = EmailAddress.fromString(personEmail)
                 tempMessageModel.toPersonId = personId
             }
         }
         tempMessageModel.personId = User.CurrentUser.id
         tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
-        tempMessageModel.localGroupId = self.spaceModel?.localGroupId
+        tempMessageModel.localSpaceId = self.spaceModel.localSpaceId
         if let mentions = mentionList, mentions.count>0{
             var mentionModels : [Mention] = []
             for mention in mentions{
-                if mention.name == "ALL"{
+                if mention.name == "All"{
                     mentionModels.append(Mention.all)
                 }else{
                     mentionModels.append(Mention.person(mention.id))
@@ -200,11 +225,9 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     }
     
     func makeCall(isVideo: Bool){
-        if let spaceModel = self.spaceModel{
-            self.callVC = BuddiesCallViewController(space: spaceModel)
-            self.present(self.callVC!, animated: true) {
-                self.callVC?.beginCall(isVideo: isVideo)
-            }
+        self.callVC = BuddiesCallViewController(space: self.spaceModel)
+        self.present(self.callVC!, animated: true) {
+            self.callVC?.beginCall(isVideo: isVideo)
         }
     }
     
@@ -213,9 +236,16 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
         if let _ = self.messageList.filter({$0.messageId == message.id}).first{
             return
         }
+        if let callVc = self.callVC{
+            callVc.receiveNewMessage(message: message)
+            return
+        }
         let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
-        msgModel?.localGroupId = self.spaceModel?.localGroupId
+        msgModel?.localSpaceId = self.spaceModel.localSpaceId
+        if let idx = self.spaceModel.spaceMembers.index(where: {$0.id == message.personId}) {
+            msgModel?.avator = self.spaceModel.spaceMembers[idx].avatorUrl
+        }
         if(msgModel?.text == nil){
             msgModel?.text = ""
         }
@@ -224,9 +254,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
         self.messageTableView?.reloadData()
         _ = self.messageTableView?.cellForRow(at: indexPath)
         self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
-        if let callVc = self.callVC{
-            callVc.receiveNewMessage(message: message)
-        }
+
     }
     
     // MARK: - UI Implementation
@@ -244,9 +272,9 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
         }
     }
     
-    private func setUpSupViews(){
+    private func updateSupViews(){
+        self.updateNavigationTitle()
         self.updateBarItem()
-        self.setUpMessageTableView()
         self.setUpBottomView()
     }
     
@@ -257,8 +285,10 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
             if let avator = avator {
                 avator.setCorner(Int(avator.frame.height / 2))
             }
-            let membersBtnItem = UIBarButtonItem(image: UIImage(named: "icon_members"), style: .plain, target: self, action: #selector(membersBtnClicked))
-            self.navigationItem.rightBarButtonItem = membersBtnItem
+            if self.spaceModel.type == SpaceType.group {
+                let membersBtnItem = UIBarButtonItem(image: UIImage(named: "icon_members"), style: .plain, target: self, action: #selector(membersBtnClicked))
+                self.navigationItem.rightBarButtonItem = membersBtnItem
+            }
         }
     }
     private func setUpMessageTableView(){
@@ -276,26 +306,17 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     
     private func setUpBottomView(){
         let bottomViewWidth = Constants.Size.screenWidth
-        if let group = User.CurrentUser[(self.spaceModel?.localGroupId)!]{
-            self.buddiesInputView = BuddiesInputView(frame: CGRect(x: 0, y: messageTableViewHeight, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!, contacts: group.groupMembers)
-            self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
-                self.sendMessage(text: textStr, assetList, mentionList,mentionPositions)
-            }
-            self.buddiesInputView?.videoCallBtnClickedBlock = {
-                self.makeCall(isVideo: true)
-            }
-            self.buddiesInputView?.audioCallBtnClickedBlock = {
-                self.makeCall(isVideo: false)
-            }
-            self.view.addSubview(self.buddiesInputView!)
-        }else{
-            self.buddiesInputView = BuddiesInputView(frame: CGRect(x: 0, y: messageTableViewHeight, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!)
-            self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
-                self.sendMessage(text: textStr, assetList, mentionList,mentionPositions)
-            }
-            self.view.addSubview(self.buddiesInputView!)
+        self.buddiesInputView = BuddiesInputView(frame: CGRect(x: 0, y: messageTableViewHeight, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!, contacts: self.spaceModel.spaceMembers, navController: self.navigationController)
+        self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
+            self.sendMessage(text: textStr, assetList, mentionList,mentionPositions)
         }
-
+        self.buddiesInputView?.videoCallBtnClickedBlock = {
+            self.makeCall(isVideo: true)
+        }
+        self.buddiesInputView?.audioCallBtnClickedBlock = {
+            self.makeCall(isVideo: false)
+        }
+        self.view.addSubview(self.buddiesInputView!)
     }
     
     private func setUpMembertableView(){
@@ -335,7 +356,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
             self.spaceMemberTableView?.transform = CGAffineTransform(translationX: -Constants.Size.screenWidth/4*3, y: 0)
             self.maskView?.alpha = 0.4
         }) { (_) in
-            self.requestSpaceMemberList()
+            self.spaceMemberTableView?.reloadData()
         }
         
     }
@@ -374,7 +395,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if(tableView == self.spaceMemberTableView){
-            return self.spaceMeberList.count
+            return self.spaceModel.spaceMembers.count
         }else{
             return self.messageList.count
         }
@@ -383,12 +404,12 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if(tableView == self.spaceMemberTableView){
             let index = indexPath.row
-            let memberModel = self.spaceMeberList[index]
+            let memberModel = self.spaceModel.spaceMembers[index]
             var reuseCell = tableView.dequeueReusableCell(withIdentifier: "PeopleListTableCell")
             if reuseCell != nil{
-                (reuseCell as! PeopleListTableCell).updateMembershipCell(newMemberShipModel: memberModel)
+                (reuseCell as! PeopleListTableCell).updateMembershipCell(membershipContact: memberModel)
             }else{
-                reuseCell = PeopleListTableCell(membershipModel: memberModel)
+                reuseCell = PeopleListTableCell(membershipContact: memberModel)
             }
             return reuseCell!
         }else{
@@ -428,7 +449,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     }
 
     // MARK: - Markup string
-    private func processMentionString(contentStr: String?, mentions: [Mention],mentionsArr: [Range<Int>])-> String{
+    private func processMentionString(contentStr: String?, mentions: [Mention], mentionsArr: [Range<Int>])-> String{
         var result: String = ""
         if let contentStr = contentStr{
             var markedUpContent = contentStr
@@ -446,7 +467,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
                 let mentionContent = markedUpContent[startPosition..<endPostion]
                 switch mention{
                 case .all:
-                    let markupStr = markUpString(mentionContent: mentionContent, groupType: "All", mentionType: "groupMention")
+                    let markupStr = markUpString(mentionContent: mentionContent, spaceType: "all", mentionType: "groupMention")
                     markedUpContent = markedUpContent.replacingCharacters(in: startIndex..<endIndex, with: markupStr)
                     mentionStringLength += (markupStr.count - (mentionContent?.count)!)
                     break
@@ -461,13 +482,13 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
         }
         return result
     }
-    private func markUpString(mentionContent: String?, mentionId: String? = nil, groupType: String?=nil, mentionType: String)->String{
+    private func markUpString(mentionContent: String?, mentionId: String? = nil, spaceType: String?=nil, mentionType: String)->String{
         var result = "<spark-mention"
         if let mentionid = mentionId{
             result = result + " data-object-id=" + mentionid
         }
-        if let grouptype = groupType{
-            result = result + " data-group-type=" + grouptype
+        if let spacetype = spaceType{
+            result = result + " data-group-type=" + spacetype
         }
         
         result = result + " data-object-type=" + mentionType
@@ -481,7 +502,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     
     // MARK: Other Functions
     private func updateNavigationTitle(){
-        self.navigationTitleLabel?.text = self.spaceModel?.title != nil ? self.spaceModel?.title! : "No Name"
+        self.navigationTitleLabel?.text = self.spaceModel.title != nil ? self.spaceModel.title! : "No Name"
     }
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

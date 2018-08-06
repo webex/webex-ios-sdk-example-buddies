@@ -99,30 +99,11 @@ extension String {
         return String(self[startIndex..<endIndex])
     }
     
-    var md5: String! {
-        let str = self.cString(using: String.Encoding.utf8)
-        let strLen = CC_LONG(self.lengthOfBytes(using: String.Encoding.utf8))
-        let digestLen = Int(CC_MD5_DIGEST_LENGTH)
-        let result = UnsafeMutablePointer<CUnsignedChar>.allocate(capacity: digestLen)
-        
-        CC_MD5(str!, strLen, result)
-        
-        let hash = NSMutableString()
-        for i in 0..<digestLen {
-            hash.appendFormat("%02x", result[i])
-        }
-        
-        result.deallocate(capacity: digestLen)
-        
-        return String(format: hash as String)
-    }
-        
     func calculateSringHeight(width: Double, font : UIFont)->CGFloat{
         let textAttributes = [NSAttributedStringKey.font: font]
         let textRect = self.boundingRect(with: CGSize(Int(width), 3000), options: .usesLineFragmentOrigin, attributes: textAttributes, context: nil)
         return textRect.height
     }
-    
     
     func calculateSringSize(width: Double, font : UIFont)->CGSize{
         let textAttributes = [NSAttributedStringKey.font: font]

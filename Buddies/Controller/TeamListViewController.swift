@@ -45,7 +45,7 @@ class TeamListViewController: HomeViewController, UITableViewDelegate, UITableVi
     
     // MARK: - WebexSDK: listig team / create space
     private func requestTeamList(){
-        KTActivityIndicator.singleton.show(title: "Loading")
+        KTActivityIndicator.singleton.show(title: "Loading...")
         WebexSDK?.teams.list(max: 20) {
             (response: ServiceResponse<[Team]>) in
             KTActivityIndicator.singleton.hide()

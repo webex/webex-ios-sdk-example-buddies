@@ -29,35 +29,40 @@ class SpaceModel: NSObject,NSCoding {
     
     var spaceId: String //spaceId reprents remote spaceId
     
-    var localGroupId: String //GroupId contain witch Group involved in
+    var localSpaceId: String //SpaceId contain witch Space involved in
     
     var title: String?
 
-    var type: SpaceType?  ///  "group" Group space among multiple people, "direct"  1-to-1 space between two people
+    var type: SpaceType?  ///  "space" Space space among multiple people, "direct"  1-to-1 space between two people
     
     var isLocked: Bool? = false
     
     var teamId: String?
     
-    var spaceMembers: [Contact]?
-
-    init(spaceId : String) {
-        self.spaceId = spaceId
-        self.localGroupId = ""
-    }
+    var spaceMembers = [Contact]()
     
-    init(groupModel: Group){
+    var contact: Contact?
+    
+    var unReadedCount: Int = 0
+    
+    init(contact: Contact){
         self.spaceId = ""
-        self.localGroupId = groupModel.groupId!
-        self.title = groupModel.groupName
-        self.spaceMembers = groupModel.groupMembers
+        self.localSpaceId = contact.email
+        self.title = contact.name
+        self.contact = contact
+        self.type = SpaceType.direct
     }
     
-    convenience init?(space: Space) {
-        guard let spaceId = space.id else {
-            return nil
+    init(space: Space) {
+        
+        if let spaceId = space.id {
+            self.spaceId = spaceId
+            self.localSpaceId = spaceId
+        }else {
+            self.spaceId = ""
+            self.localSpaceId = ""
         }
-        self.init(spaceId: spaceId)
+        
         if let title = space.title{
             self.title = title
         }
@@ -70,32 +75,41 @@ class SpaceModel: NSObject,NSCoding {
         if let teamId = space.teamId{
             self.teamId = teamId
         }
+        
+        super.init()
     }
     public func encode(with aCoder: NSCoder){
         aCoder.encode(self.spaceId, forKey: "SpaceId")
-        aCoder.encode(self.localGroupId, forKey: "localGroupId")
+        aCoder.encode(self.localSpaceId, forKey: "localSpaceId")
+        aCoder.encode(self.unReadedCount, forKey:"unReadedCount")
         
-        if self.type != nil{
-            aCoder.encode(self.type?.rawValue, forKey: "type")
+        if let type = self.type {
+            aCoder.encode(type.rawValue, forKey: "type")
         }
-        if self.title != nil{
-            aCoder.encode(self.title, forKey: "title")
+        if let title = self.title {
+            aCoder.encode(title, forKey: "title")
         }
-        if self.isLocked != nil{
-            aCoder.encode(self.isLocked, forKey: "isLocked")
+        if let isLocked = self.isLocked{
+            aCoder.encode(isLocked, forKey: "isLocked")
         }
-        if self.teamId != nil{
-            aCoder.encode(self.teamId, forKey: "teamId")
+        if let teamId = self.teamId{
+            aCoder.encode(teamId, forKey: "teamId")
         }
+        if let contact = self.contact{
+            aCoder.encode(contact, forKey: "contact")
+        }
+        
     }
     
     public required init?(coder aDecoder: NSCoder){
         self.spaceId = aDecoder.decodeObject(forKey: "SpaceId") as! String
-        self.localGroupId = aDecoder.decodeObject(forKey: "localGroupId") as! String
+        self.localSpaceId = aDecoder.decodeObject(forKey: "localSpaceId") as! String
         self.title = aDecoder.decodeObject(forKey: "title") as? String
         self.type = SpaceType(rawValue: (aDecoder.decodeObject(forKey: "type") as? String)!)
         self.isLocked = aDecoder.decodeObject(forKey: "isLocked") as? Bool
         self.teamId = aDecoder.decodeObject(forKey: "teamId") as? String
+        self.contact = aDecoder.decodeObject(forKey: "contact") as? Contact
+        self.unReadedCount = aDecoder.decodeObject(forKey: "unReadedCount") as? Int ?? 0
     }
     
 }

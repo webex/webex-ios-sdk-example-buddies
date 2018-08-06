@@ -45,10 +45,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     weak var currentCall: Call?
     private var timer: Timer?
     private var startTime: Date?
-    private var isGroupCall: Bool = false
+    private var isSpaceCall: Bool = false
     private var memberShipList: [CallMembership]?
     private var memberShipViewList: [CallMemberShipView]? = []
-    
     
     /// removeVideoView receives and presents remote camera
     private(set) var remoteVideoView: MediaRenderView?
@@ -56,12 +55,15 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private(set) var localVideoView: MediaRenderView?
     /// screenShareView present screenShare render view
     private(set) var screenShareView: MediaRenderView?
-    
-    
+    /// multiStream present render view
+    private(set) var multiPersonViews = [MediaRenderView]()
+    private var multiPersonViewDict: [Int: Bool] = [Int: Bool]()
     
     // MARK: Message Feature UI
     private static var callContext = 0
     private let messageTableViewHeight = (Constants.Size.screenHeight/4+50)
+    private let multiPersonViewHeight: CGFloat = (Constants.Size.screenWidth/4*3 - 50)/4
+    private let multiPersonViewY: CGFloat = 140
     private var backScrollView: UIScrollView?
     private var memberShipScrollView: UIScrollView?
     private var messageTableView: UITableView?
@@ -73,18 +75,18 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     // MARK: - Life Circle
     init(callee: Contact, uuid: UUID? = nil, callkit: CXProvider? = nil) {
-        self.isGroupCall = false
+        self.isSpaceCall = false
         self.callee = callee
         self.uuid = uuid
         self.callkit = callkit
-        if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: callee.email){
-            self.spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: group.groupId!)
+        if let space = User.CurrentUser[callee.email]{
+            self.spaceModel = space
         }
         super.init(nibName: nil, bundle: nil);
     }
     
     init(space: SpaceModel, uuid: UUID? = nil, callkit: CXProvider? = nil){
-        self.isGroupCall = space.type == SpaceType.group ? true : false
+        self.isSpaceCall = space.type == SpaceType.group ? true : false
         self.callee = Contact(id: "", name: space.title!, email: space.spaceId)
         self.uuid = uuid
         self.callkit = callkit
@@ -132,9 +134,20 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }else{
             mediaOption = MediaOption.audioOnly()
         }
-        if let space = self.spaceModel{
-            if space.type == SpaceType.direct {
-                WebexSDK?.phone.dial(space.localGroupId, option:  mediaOption) { result in
+        if let spaceModel = self.spaceModel, spaceModel.type == SpaceType.direct {
+            WebexSDK?.phone.dial(spaceModel.localSpaceId, option:  mediaOption) { result in
+                KTActivityIndicator.singleton.hide()
+                switch result {
+                case .success(let call):
+                    self.currentCall = call
+                    self.callStateChangeCallBacks(call: call)
+                case .failure(let error):
+                    self.disMissVC(error)
+                }
+            }
+        }else{
+            if let sapceModel = self.spaceModel {
+                WebexSDK?.phone.dial(sapceModel.spaceId, option:  mediaOption) { result in
                     KTActivityIndicator.singleton.hide()
                     switch result {
                     case .success(let call):
@@ -142,19 +155,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                         self.callStateChangeCallBacks(call: call)
                     case .failure(let error):
                         self.disMissVC(error)
-                    }
-                }
-            }else{
-                if let spaceId = self.spaceModel?.spaceId{
-                    WebexSDK?.phone.dial(spaceId, option:  mediaOption) { result in
-                        KTActivityIndicator.singleton.hide()
-                        switch result {
-                        case .success(let call):
-                            self.currentCall = call
-                            self.callStateChangeCallBacks(call: call)
-                        case .failure(let error):
-                            self.disMissVC(error)
-                        }
                     }
                 }
             }
@@ -215,7 +215,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     // MARK: - WebexSDK: call state change processing code here...
     private func callStateChangeCallBacks(call: Call) {
-        self.memberShipList = call.memberships
+        self.memberShipList = call.memberships.filter({$0.email != User.CurrentUser.email})
         /* Callback when remote participant(s) answered and this *call* is connected. */
         call.onConnected = { [weak self] in
             print("Call ======= > Connected")
@@ -310,8 +310,143 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 }
             }
         }
+        
+        if self.spaceModel?.type == SpaceType.group{
+            self.setUpMultiPersonViews()
+            self.multiPersonViews.forEach{ multiView in
+                call.subscribeRemoteAuxVideo(view: multiView){
+                    result in
+                    switch result {
+                    case .success(_):
+                        break
+                    case .failure(let error):
+                        print("ERROR: \(String(describing: error))")
+                        break
+                    }
+                }
+            }
+        }
+        
+        call.onRemoteAuxVideoChanged = {
+            event in
+            switch event {
+            case .remoteAuxVideoPersonChangedEvent(let remoteAuxVideo):
+                print("========remoteAuxVideoPersonChangedEvent:\(remoteAuxVideo.person?.email ?? "none")============")
+            case .receivingAuxVideoEvent(let remoteAuxVideo):
+                print("========receivingAuxVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
+                print("========remoteAuxSendingVideoEvent isRceiving:\(remoteAuxVideo.isReceivingVideo)============")
+            case .remoteAuxSendingVideoEvent(let remoteAuxVideo):
+                print("========remoteAuxSendingVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
+                print("========remoteAuxSendingVideoEvent isSending:\(remoteAuxVideo.isSendingVideo)============")
+                if let renderView = remoteAuxVideo.renderViews.first {
+                    print("()())()()()())+\(renderView.tag)")
+                }
+                if remoteAuxVideo.isSendingVideo{
+                    self.deployMultiPersonViewVideo(remoteAuxVideo)
+                }
+                break
+            case .remoteAuxVideoSizeChangedEvent(let remoteAuxVideo):
+                self.updateMultiRenderViewSize(remoteAuxVideo)
+                print("Auxiliary video size changed:\(remoteAuxVideo.remoteAuxVideoSize)")
+                break
+            }
+        }
     }
     
+    // MARK: - Multiviews UI implementation
+    private func setUpMultiPersonViews() {
+        for idx in 0..<4 {
+            let x = idx * Int(multiPersonViewHeight)
+            let y = 140
+            let frame = CGRect.init(x, y, Int(multiPersonViewHeight), Int(multiPersonViewHeight))
+            let multiPersonView = MediaRenderView(frame: frame)
+            multiPersonView.backgroundColor = UIColor.clear
+            let tag = 10000 + idx
+            multiPersonView.tag = 10000 + idx
+            multiPersonView.alpha = 0.0
+            self.multiPersonViews.append(multiPersonView)
+            self.multiPersonViewDict[tag] = false
+        }
+    }
+    
+    private func deleteMultiPersonViews(_ renderViews: [MediaRenderView]) {
+        
+    }
+    
+    private func moveMultiPersonViewPositions() {
+        
+    }
+    
+    private func deployMultiPersonViewVideo(_ auxVideo: RemoteAuxVideo){
+        if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag], !rendered {
+            multiPersonViewDict[renderView.tag] = true
+            self.view.addSubview(renderView)
+            renderView.transform = CGAffineTransform.init(scaleX: 0.0, y: 0.0)
+            UIView.beginAnimations("addMultiView", context: nil)
+            UIView.setAnimationDuration(0.25)
+            UIView.setAnimationCurve(.easeInOut)
+            renderView.alpha = 1.0
+            renderView.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
+            UIView.commitAnimations()
+        }
+    }
+    
+    private func updateMultiRenderViewSize(_ auxVideo: RemoteAuxVideo){
+        let width = CGFloat(auxVideo.remoteAuxVideoSize.width)
+        let height = CGFloat(auxVideo.remoteAuxVideoSize.height)
+        let rate: CGFloat = width/height
+        let size: CGFloat = multiPersonViewHeight
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var viewWidth: CGFloat = 0
+        var viewHeight: CGFloat = 0
+        var buffx: CGFloat = 0
+        var buffy: CGFloat = 0
+        if let renderView = auxVideo.renderViews.first {
+            let idx = renderView.tag - 10000
+            if rate > 1 {
+                viewWidth = size*rate
+                viewHeight = size
+                buffx = (viewWidth-size)/2
+                buffy = 0
+                x = ((size+5)*CGFloat(idx))-buffx
+                y = multiPersonViewY
+            }
+            else {
+                viewWidth = size
+                viewHeight = size/rate
+                buffx = 0
+                buffy = (viewHeight-size)/2
+                x = (size+5)*CGFloat(idx)
+                y = multiPersonViewY-buffy
+            }
+            renderView.frame = CGRect.init(x, y, viewWidth, viewHeight)
+            
+            let maskLayer = CALayer()
+            maskLayer.frame = CGRect.init(buffx, buffy, size, size)
+            maskLayer.backgroundColor = UIColor.black.cgColor
+            maskLayer.borderWidth = 2.0
+            maskLayer.masksToBounds = true
+            maskLayer.cornerRadius = size/2
+            renderView.layer.mask = maskLayer
+            
+            let borderLayer = CAShapeLayer()
+            borderLayer.frame = CGRect.init(buffx, buffy, size, size)
+            let path = UIBezierPath()
+            path.addArc(withCenter: CGPoint(x: size/2, y: size/2), radius: size/2-1, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
+            borderLayer.path = path.cgPath
+            borderLayer.strokeColor = Constants.Color.Theme.Main.cgColor
+            borderLayer.fillColor = UIColor.clear.cgColor
+            borderLayer.lineWidth = 2
+            renderView.layer.sublayers?.forEach{ subLayer in
+                if subLayer.isKind(of: CAShapeLayer.self){
+                    subLayer.removeFromSuperlayer()
+                }
+            }
+            renderView.layer.addSublayer(borderLayer)
+        }
+    }
+  
     func updateUIforScreenShareing(_ isReceiving: Bool){
         if(isReceiving){
             UIView.animate(withDuration: 0.15, animations: {
@@ -359,7 +494,10 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
         let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
-        msgModel?.localGroupId = self.spaceModel?.localGroupId
+        msgModel?.localSpaceId = self.spaceModel?.localSpaceId
+        if let idx = self.spaceModel?.spaceMembers.index(where: {$0.id == message.personId}) {
+            msgModel?.avator = self.spaceModel?.spaceMembers[idx].avatorUrl
+        }
         if(msgModel?.text == nil){
             msgModel?.text = ""
         }
@@ -404,7 +542,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             view.width == view.superview!.width / 4
             view.height == view.superview!.height / 4
         }
-        
+    
         self.statusLable = UILabel()
         self.statusLable?.font = Constants.Font.StatusBar
         self.statusLable?.textAlignment = .left
@@ -501,7 +639,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             view2.bottom == backView.bottom - 88
             view3.bottom == backView.bottom - 88
         }
-        
         self.setUpMessageTableView()
         self.setUpBottomView()
         self.backScrollView?.isScrollEnabled = false
@@ -631,17 +768,17 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private func setUpBottomView(){
         let bottomViewWidth = Constants.Size.screenWidth*2
         let Y = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
-        self.buddiesInputView = BuddiesInputView(frame:  CGRect(x: bottomViewWidth, y:Y, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!)
+        self.buddiesInputView = BuddiesInputView(frame:  CGRect(x: bottomViewWidth, y:Y, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!, contacts: self.spaceModel?.spaceMembers)
         self.buddiesInputView?.isInputViewInCall = true
         self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
             self.sendMessage(text: textStr, assetList, mentionList)
         }
         self.backScrollView?.addSubview(self.buddiesInputView!)
     }
-    
+
     // MARK: MemberShips View SetUp
     private func setUpMemberShipView(){
-        if(self.isGroupCall && self.memberShipViewList?.count == 0){
+        if(self.isSpaceCall && self.memberShipViewList?.count == 0){
             let sortedMemberList = self.memberShipList?.sorted(by: { (first: CallMembership, second: CallMembership) -> Bool in
                 let r1 = (first.email! == User.CurrentUser.email) ? 1 : 0
                 let r2 = (second.email! == User.CurrentUser.email) ? 1 : 0
@@ -661,7 +798,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     private func updateMemberShipView(membership: CallMembership){
-        if(self.isGroupCall){
+        if(self.isSpaceCall){
             if let listCount = self.memberShipList?.count{
                 for index in 0..<listCount{
                     let tempMemberShipModel = self.memberShipList?[index]
@@ -673,7 +810,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
-    // MARK: Page Logic Iplementation
     // MARK: - WebexSDK: post message current space
     func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
         let tempMessageModel = BDSMessage()
@@ -681,19 +817,20 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         tempMessageModel.messageState = MessageState.willSend
         tempMessageModel.text = text
         if self.spaceModel?.type == SpaceType.direct{
-            if let personEmail = self.spaceModel?.spaceMembers![0].email,
-                let personId = self.spaceModel?.spaceMembers![0].id{
+            if let buddy = self.spaceModel?.contact {
+                let personEmail = buddy.email
+                let personId = buddy.id
                 tempMessageModel.toPersonEmail = EmailAddress.fromString(personEmail)
                 tempMessageModel.toPersonId = personId
             }
         }
         tempMessageModel.personId = User.CurrentUser.id
         tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
-        tempMessageModel.localGroupId = self.spaceModel?.localGroupId
+        tempMessageModel.localSpaceId = self.spaceModel?.localSpaceId
         if let mentions = mentionList, mentions.count>0{
             var mentionModels : [Mention] = []
             for mention in mentions{
-                if mention.name == "ALL"{
+                if mention.name == "All"{
                     mentionModels.append(Mention.all)
                 }else{
                     mentionModels.append(Mention.person(mention.id))
@@ -765,7 +902,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
-    // MARK: UITableViewDataSource
+    // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         var fileCount = 0
         var imageCount = 0
@@ -800,14 +937,14 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         return reuseCell!
     }
     
-    //MARK: UIScrollViewDelegate
+    //MARK: - UIScrollViewDelegate
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
         if scrollView == self.backScrollView {
             self.buddiesInputView?.inputTextView?.resignFirstResponder()
         }
     }
-    
-    // MARK: other functions
+
+    // MARK: - other functions
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -818,6 +955,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
 }
 
+// MRAK: - Call membership view
 class CallMemberShipView: UIView{
     public enum JoinState: String {
         case Joined  = "joined"
@@ -836,16 +974,16 @@ class CallMemberShipView: UIView{
     
     init(frame: CGRect, membership: CallMembership){
         
-        self.viewWidth = frame.size.width - 6
-        self.viewHeight = frame.size.height - 6
+        self.viewWidth = frame.size.width - 4
+        self.viewHeight = frame.size.height - 4
         self.joinState = JoinState(rawValue: "unknown")!
         self.memberShip = membership
         super.init(frame: frame)
-        self.setUpSubView()
+        self.setUpCallMemberShipView()
         self.updateMemberShipJoinState(newmemberShip: self.memberShip)
     }
     
-    private func setUpSubView(){
+    private func setUpCallMemberShipView(){
         
         /// -Setup AvatorView
         self.borderLayer = CAShapeLayer()
@@ -854,7 +992,7 @@ class CallMemberShipView: UIView{
         self.borderLayer?.path = circlePath.cgPath
         self.layer.addSublayer(self.borderLayer!)
         
-        self.avatorImageView = UIImageView.init(frame: CGRect(x: 3, y: 3, width: viewWidth, height: viewHeight))
+        self.avatorImageView = UIImageView.init(frame: CGRect(x: 2, y: 2, width: viewWidth, height: viewHeight))
         self.avatorImageView?.layer.cornerRadius = self.viewHeight/2
         self.avatorImageView?.layer.masksToBounds = true
         self.avatorImageView?.backgroundColor = UIColor.darkGray
@@ -883,7 +1021,7 @@ class CallMemberShipView: UIView{
         }
         
         self.maskLayer = CALayer()
-        self.maskLayer?.frame = CGRect(x: 3, y: 3, width: self.viewWidth, height: self.viewHeight)
+        self.maskLayer?.frame = CGRect(x: 2, y: 2, width: self.viewWidth, height: self.viewHeight)
         self.maskLayer?.backgroundColor = UIColor.black.cgColor
         self.maskLayer?.opacity = 0.5
         self.maskLayer?.cornerRadius = self.viewHeight/2

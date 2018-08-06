@@ -34,6 +34,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     private var customerCareTF: MKTextField?
     private var addedEmailDict: Dictionary<String,String>?
     private var spaceVC : SpaceViewController?
+    private var callVC: BuddiesCallViewController?
     
     // MARK : Life Circle
     override func viewDidLoad() {
@@ -192,17 +193,16 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         self.configurationView?.addSubview(initBtn)
         
         if(User.CurrentUser.loginType == .Guest){
-            for index in 0..<User.CurrentUser.groupCount{
-                let group = User.CurrentUser[index]
-                let tempContact = group?[0]
-                if(tempContact?.name == "Healthcare Provider"){
-                   self.healthcareProTF?.text = tempContact?.email
+            for index in 0..<User.CurrentUser.spaceCount{
+                let space = User.CurrentUser[index]
+                if(space?.title == "Healthcare Provider"){
+                   self.healthcareProTF?.text = space?.localSpaceId
                 }
-                if(tempContact?.name == "Financial Advisor"){
-                    self.financialAdPTF?.text = tempContact?.email
+                if(space?.title == "Financial Advisor"){
+                    self.financialAdPTF?.text = space?.localSpaceId
                 }
-                if(tempContact?.name == "Customer Care Agent"){
-                    self.customerCareTF?.text = tempContact?.email
+                if(space?.title == "Customer Care Agent"){
+                    self.customerCareTF?.text = space?.localSpaceId
                 }
             }
         }
@@ -232,11 +232,11 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         
         self.peopleListView?.addSubview(homeTitleLabel)
         
-        for index in 0..<User.CurrentUser.groupCount{
-            let group = User.CurrentUser[index]
+        for index in 0..<User.CurrentUser.spaceCount{
+            let space = User.CurrentUser[index]
             let initBtn = UIButton(frame: CGRect(x: 30, y: 80+50*index, width: Int(viewWidth - 100), height: 40))
             initBtn.backgroundColor = Constants.Color.Theme.Main
-            initBtn.setTitle("Call " + (group?[0]?.name)!, for: .normal)
+            initBtn.setTitle("Call " + (space?.title)!, for: .normal)
             initBtn.setTitleColor(UIColor.white, for: .normal)
             initBtn.titleLabel?.font = Constants.Font.NavigationBar.Title
             initBtn.layer.cornerRadius = 20.0
@@ -252,9 +252,9 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             messageBtn.layer.masksToBounds = true
             messageBtn.tag = 20000+index
             
-            if(group?[0]?.id != ""){
+            if(space?.localSpaceId != ""){
                 initBtn.addTarget(self, action: #selector(makeWebexCall(sender:)), for: .touchUpInside)
-                messageBtn.addTarget(self, action: #selector(makeSaprkMessage(sender:)), for: .touchUpInside)
+                messageBtn.addTarget(self, action: #selector(makeWebexMessage(sender:)), for: .touchUpInside)
             }else{
                 initBtn.backgroundColor = UIColor.gray
                 messageBtn.backgroundColor = UIColor.gray
@@ -265,7 +265,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
         
         let settingBtn = UIButton(type: .custom)
-        settingBtn.frame = CGRect(x: 30, y: 80 + 50*User.CurrentUser.groupCount+20, width: (Int(viewWidth-60)), height: 20)
+        settingBtn.frame = CGRect(x: 30, y: 80 + 50*User.CurrentUser.spaceCount+20, width: (Int(viewWidth-60)), height: 20)
         settingBtn.titleLabel?.font = Constants.Font.InputBox.Button
         settingBtn.tag = UserOptionType.GuestLogin.rawValue
         let paragraph = NSMutableParagraphStyle()
@@ -283,26 +283,24 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     
     func updateUnreadedLabels(){
         let viewWidth = Constants.Size.screenWidth
-        for index in 0..<User.CurrentUser.groupCount{
-            let group = User.CurrentUser[index]
-            if(group?.unReadedCount != 0){
+        for index in 0..<User.CurrentUser.spaceCount{
+            let space = User.CurrentUser[index]
+            if(space?.unReadedCount != 0){
                 if let unreadedLabel = self.peopleListView?.viewWithTag(10000+index){
-                    (unreadedLabel as! UILabel).text = String(describing: (group?.unReadedCount)!)
+                    (unreadedLabel as! UILabel).text = String(describing: (space?.unReadedCount)!)
                 }else{
-                    let unreadedLabel = UILabel(frame: CGRect(x: Int(viewWidth - 40), y: 75+50*index, width: Int(25), height: 25))
-                    unreadedLabel.backgroundColor = UIColor.red
-                    unreadedLabel.font = UIFont.systemFont(ofSize: 10)
-                    unreadedLabel.textColor = UIColor.white
-                    unreadedLabel.layer.cornerRadius = 12.5
+                    let unreadedLabel = UILabel(frame: CGRect(x: Int(viewWidth - 36), y: 80+50*index, width: Int(16), height: 16))
+                    unreadedLabel.backgroundColor = Constants.Color.Theme.Main
+                    unreadedLabel.layer.borderColor = UIColor.white.cgColor
+                    unreadedLabel.layer.borderWidth = 2.0
+                    unreadedLabel.layer.cornerRadius = 8
                     unreadedLabel.layer.masksToBounds = true
                     unreadedLabel.textAlignment = .center
-                    unreadedLabel.text = String(describing: (group?.unReadedCount)!)
                     unreadedLabel.tag = 10000+index
                     self.peopleListView?.addSubview(unreadedLabel)
                 }
             }
         }
-
     }
     
     
@@ -356,7 +354,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             
             if jwtAuthStrategy.authorized == true {
                 WebexSDK = Webex(authenticator: jwtAuthStrategy)
-                KTActivityIndicator.singleton.show(title: "Loading")
+                KTActivityIndicator.singleton.show(title: "Loading...")
                 WebexSDK?.people.getMe { res in
                     if let person = res.result.data {
                         if(User.updateCurrenUser(person: person, loginType: .Guest)){
@@ -385,7 +383,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
                 case .messageReceived(let message):
                     self.receiveNewMessage(message)
                     break
-                case .messageDeleted(let _):
+                case .messageDeleted( _):
                     break
                 }
             }
@@ -401,19 +399,19 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         self.dismiss(animated: true) {}
     }
     private func addContacts(){
-        if(User.CurrentUser.groupCount == 0){
+        if(User.CurrentUser.spaceCount == 0){
             for element in self.addedEmailDict!{
                 WebexSDK?.people.list(email: EmailAddress.fromString(element.value), displayName: nil, max: 1) { res in
                     if let person = res.result.data?.first, let contact = Contact(person: person) {
                         contact.name = element.key
-                        User.CurrentUser.addNewContactAsGroup(contact: contact)
-                        if(User.CurrentUser.groupCount == self.addedEmailDict?.count){
+                        User.CurrentUser.addNewContactAsSpace(contact: contact)
+                        if(User.CurrentUser.spaceCount == self.addedEmailDict?.count){
                             self.setUpPeopleListView()
                         }
                     }else{
                         let tempContact = Contact(id: "", name: element.key, email: element.value)
-                        User.CurrentUser.addNewContactAsGroup(contact: tempContact)
-                        if(User.CurrentUser.groupCount == self.addedEmailDict?.count){
+                        User.CurrentUser.addNewContactAsSpace(contact: tempContact)
+                        if(User.CurrentUser.spaceCount == self.addedEmailDict?.count){
                             self.setUpPeopleListView()
                         }
                     }
@@ -424,21 +422,21 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
     }
     private func updateContacts(){
-        User.CurrentUser.removeAllGroups()
-        KTActivityIndicator.singleton.show(title: "Loading")
+        User.CurrentUser.removeAllSpaces()
+        KTActivityIndicator.singleton.show(title: "Loading...")
         for element in self.addedEmailDict!{
             WebexSDK?.people.list(email: EmailAddress.fromString(element.value), displayName: nil, max: 1) { res in
                 if let person = res.result.data?.first, let contact = Contact(person: person) {
                     contact.name = element.key
-                    User.CurrentUser.addNewContactAsGroup(contact: contact)
-                    if(User.CurrentUser.groupCount == self.addedEmailDict?.count){
+                    User.CurrentUser.addNewContactAsSpace(contact: contact)
+                    if(User.CurrentUser.spaceCount == self.addedEmailDict?.count){
                         KTActivityIndicator.singleton.hide()
                         self.setUpPeopleListView()
                     }
                 }else{
                     let tempContact = Contact(id: "", name: element.key, email: element.value)
-                    User.CurrentUser.addNewContactAsGroup(contact: tempContact)
-                    if(User.CurrentUser.groupCount == self.addedEmailDict?.count){
+                    User.CurrentUser.addNewContactAsSpace(contact: tempContact)
+                    if(User.CurrentUser.spaceCount == self.addedEmailDict?.count){
                         KTActivityIndicator.singleton.hide()
                         self.setUpPeopleListView()
                     }
@@ -466,112 +464,54 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     @objc
     public func makeWebexCall(sender: UIButton){
         let index = sender.tag - 20000
-        let group = User.CurrentUser[index]!
-        if(group.groupType == .singleMember){
-            let contact = group[0]!
-            let callVC = BuddiesCallViewController(callee: contact)
-            self.present(callVC, animated: true) {
-                callVC.beginCall(isVideo: true)
+        let space = User.CurrentUser[index]!
+        if(space.type == SpaceType.direct){
+            let contact = space.contact!
+            self.callVC = BuddiesCallViewController(callee: contact)
+            self.present(self.callVC!, animated: true) {
+                self.callVC?.beginCall(isVideo: true)
             }
         }
     }
 
-    @objc public func makeSaprkMessage(sender: UIButton){
+    @objc public func makeWebexMessage(sender: UIButton){
         let index = sender.tag - 20000
-        let group = User.CurrentUser[index]!
-        let localSpaceName = group.groupName
-        let localGroupId = group.groupId
+        let spaceModel = User.CurrentUser[index]!
+        spaceModel.unReadedCount = 0
         if let unreadLabel = self.view.viewWithTag(index+10000){
             unreadLabel.removeFromSuperview()
         }
-        group.unReadedCount = 0
-        if let spaceModel = User.CurrentUser.findLocalSpaceWithId(localGroupId: localGroupId!){
-            spaceModel.title = localSpaceName!
-            spaceModel.spaceMembers = [Contact]()
-            for contact in group.groupMembers{
-                spaceModel.spaceMembers?.append(contact)
-            }
-            self.spaceVC = SpaceViewController(space: spaceModel)
-            self.navigationController?.pushViewController(self.spaceVC!, animated: true)
-        }else{
-            if(group.groupType == .singleMember){
-                let createdSpace = SpaceModel(spaceId: "")
-                createdSpace.localGroupId = group.groupId!
-                createdSpace.title = localSpaceName!
-                createdSpace.type = SpaceType.direct
-                createdSpace.spaceMembers = [Contact]()
-                for contact in group.groupMembers{
-                    createdSpace.spaceMembers?.append(contact)
-                }
-                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
-                self.spaceVC = SpaceViewController(space: createdSpace)
-                self.navigationController?.pushViewController(self.spaceVC!, animated: true)
-                return
-            }
-            
-            KTActivityIndicator.singleton.show(title: "Loading")
-            WebexSDK?.spaces.create(title: localSpaceName!, completionHandler: {(response: ServiceResponse<Space>) in
-                switch response.result {
-                case .success(let value):
-                    if let createdSpace = SpaceModel(space: value){
-                        createdSpace.localGroupId = localGroupId!
-                        group.groupId = createdSpace.spaceId
-                        createdSpace.localGroupId = createdSpace.spaceId
-                        createdSpace.title = localSpaceName
-                        createdSpace.type = SpaceType.group
-                        createdSpace.spaceMembers = [Contact]()
-                        group.groupId = createdSpace.spaceId
-                        let threahGroup = DispatchGroup()
-                        for contact in group.groupMembers{
-                            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
-                                    switch response.result{
-                                    case .success(_):
-                                        createdSpace.spaceMembers?.append(contact)
-                                        break
-                                    case .failure(let error):
-                                        KTInputBox.alert(error: error)
-                                        break
-                                    }
-                                })
-                            }))
-                        }
-                        
-                        threahGroup.notify(queue: DispatchQueue.global(), execute: {
-                            DispatchQueue.main.async {
-                                KTActivityIndicator.singleton.hide()
-                                User.CurrentUser.insertLocalSpace(space: createdSpace, atIndex: 0)
-                                let spaceVC = SpaceViewController(space: createdSpace)
-                                self.navigationController?.pushViewController(spaceVC, animated: true)
-                            }
-                        })
-                    }
-                    break
-                case .failure(let error):
-                    DispatchQueue.main.async {
-                        KTActivityIndicator.singleton.hide()
-                        KTInputBox.alert(error: error)
-                    }
-                    break
-                }
-            })
-        }
-
+        self.spaceVC = SpaceViewController(space: spaceModel)
+        self.navigationController?.pushViewController(self.spaceVC!, animated: true)
     }
     
-    
     public func receiveNewMessage( _ messageModel: Message){
-        if messageModel.spaceType == SpaceType.direct{//GROUP
-            if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
-                if messageModel.personEmail == spaceModel.localGroupId{
-                    spaceVC.receiveNewMessage(message: messageModel)
-                    return
-                }
-            }else{
-                if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
-                    group.unReadedCount += 1
+        if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
+            if messageModel.personEmail == spaceModel.localSpaceId{
+                spaceVC.receiveNewMessage(message: messageModel)
+                return
+            } else{
+                if let space = User.CurrentUser[messageModel.personEmail!]{
+                    space.unReadedCount += 1
                     self.updateUnreadedLabels()
                 }
+            }
+        }
+        else if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
+            if messageModel.personEmail == spaceModel.localSpaceId{
+                callVC.receiveNewMessage(message: messageModel)
+                return
+            } else{
+                if let space = User.CurrentUser[messageModel.personEmail!]{
+                    space.unReadedCount += 1
+                    self.updateUnreadedLabels()
+                }
+            }
+        }
+        else{
+            if let space = User.CurrentUser[messageModel.personEmail!]{
+                space.unReadedCount += 1
+                self.updateUnreadedLabels()
             }
         }
     }
