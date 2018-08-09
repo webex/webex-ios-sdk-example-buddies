@@ -338,8 +338,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                     self.deleteMultiPersonViews(remoteAuxVideo)
                 }
             case .receivingAuxVideoEvent(let remoteAuxVideo):
-//                print("========receivingAuxVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
-//                print("========remoteAuxSendingVideoEvent isRceiving:\(remoteAuxVideo.isReceivingVideo)============")
+                print("========receivingAuxVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
+                print("========remoteAuxSendingVideoEvent isRceiving:\(remoteAuxVideo.isReceivingVideo)============")
                 break
             case .remoteAuxSendingVideoEvent(let remoteAuxVideo):
                 print("========remoteAuxSendingVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
