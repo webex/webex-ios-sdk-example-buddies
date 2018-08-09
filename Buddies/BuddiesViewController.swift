@@ -132,7 +132,6 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         self.collectionView?.addGestureRecognizer(longPressGesture)
     }
     
-    // MARK: UI Logic Implementation
     @objc private func addContactBtnClicked(sender: UIBarButtonItem) {
         let peopleListVC = PeopleListViewController(pageType: .People)
         peopleListVC.completionHandler = { dataChanged in
@@ -159,7 +158,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         self.isEditMode = false
     }
     
-    // MARK: BaseViewController Functions Override
+    // MARK: - BaseViewController Functions Override
     override func updateViewController() {
         self.updateNavigationItems()
         self.collectionView?.reloadData()
@@ -177,7 +176,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         }
     }
     
-    // MARK: CollectionView Delegate
+    // MARK: - CollectionView Delegate
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(140, 140);
     }
@@ -223,7 +222,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         }
     }
     
-    // MARK: Other Functions
+    // MARK: - Other Functions
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

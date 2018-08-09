@@ -37,7 +37,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private var muteVideoBtn: UIButton?
     private var muteVoiceBtn: UIButton?
     private var switchCameraBtn: UIButton?
-    private var screenShareBtn: UIButton?
     private var messageBtn: UIButton?
     private let callee: Contact
     let callkit: CXProvider?
@@ -53,10 +52,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private(set) var remoteVideoView: MediaRenderView?
     /// localVideoView present local camera video
     private(set) var localVideoView: MediaRenderView?
-    /// screenShareView present screenShare render view
-    private(set) var screenShareView: MediaRenderView?
     /// multiStream present render view
     private(set) var multiPersonViews = [MediaRenderView]()
+    private(set) var multiPersonBackViews = [UIView]()
     private var multiPersonViewDict: [Int: Bool] = [Int: Bool]()
     
     // MARK: Message Feature UI
@@ -278,8 +276,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 break
             case .receivingScreenShare:
                 break
-            case .remoteSendingScreenShare(let isSending):
-                self?.updateUIforScreenShareing(isSending)
+            case .remoteSendingScreenShare:
+                break
+            case .activeSpeakerChangedEvent:
                 break
             default:
                 break
@@ -332,22 +331,26 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             switch event {
             case .remoteAuxVideoPersonChangedEvent(let remoteAuxVideo):
                 print("========remoteAuxVideoPersonChangedEvent:\(remoteAuxVideo.person?.email ?? "none")============")
+                if remoteAuxVideo.person != nil {
+                    self.deployMultiPersonViewVideo(remoteAuxVideo)
+                }
+                else {
+                    self.deleteMultiPersonViews(remoteAuxVideo)
+                }
             case .receivingAuxVideoEvent(let remoteAuxVideo):
-                print("========receivingAuxVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
-                print("========remoteAuxSendingVideoEvent isRceiving:\(remoteAuxVideo.isReceivingVideo)============")
+//                print("========receivingAuxVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
+//                print("========remoteAuxSendingVideoEvent isRceiving:\(remoteAuxVideo.isReceivingVideo)============")
+                break
             case .remoteAuxSendingVideoEvent(let remoteAuxVideo):
                 print("========remoteAuxSendingVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
                 print("========remoteAuxSendingVideoEvent isSending:\(remoteAuxVideo.isSendingVideo)============")
-                if let renderView = remoteAuxVideo.renderViews.first {
-                    print("()())()()()())+\(renderView.tag)")
-                }
-                if remoteAuxVideo.isSendingVideo{
-                    self.deployMultiPersonViewVideo(remoteAuxVideo)
-                }
+                self.updateMultiRenderViewVideo(remoteAuxVideo)
                 break
             case .remoteAuxVideoSizeChangedEvent(let remoteAuxVideo):
                 self.updateMultiRenderViewSize(remoteAuxVideo)
                 print("Auxiliary video size changed:\(remoteAuxVideo.remoteAuxVideoSize)")
+                break
+            default:
                 break
             }
         }
@@ -356,38 +359,114 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     // MARK: - Multiviews UI implementation
     private func setUpMultiPersonViews() {
         for idx in 0..<4 {
-            let x = idx * Int(multiPersonViewHeight)
+            let x = idx * (Int(multiPersonViewHeight)+5) + 5
             let y = 140
             let frame = CGRect.init(x, y, Int(multiPersonViewHeight), Int(multiPersonViewHeight))
-            let multiPersonView = MediaRenderView(frame: frame)
-            multiPersonView.backgroundColor = UIColor.clear
+            let backView = UIView(frame: frame)
+            backView.backgroundColor = UIColor.clear
             let tag = 10000 + idx
-            multiPersonView.tag = 10000 + idx
-            multiPersonView.alpha = 0.0
+            backView.tag = tag
+            backView.layer.cornerRadius = multiPersonViewHeight/2
+            backView.layer.masksToBounds = true
+            backView.layer.borderColor = UIColor.MKColor.Green.P400.cgColor
+            backView.layer.borderWidth = 2.0
+            backView.alpha = 0.0
+            let nameImageView = UIImageView.init(frame: CGRect.init(0, 0, Int(multiPersonViewHeight), Int(multiPersonViewHeight)))
+            backView.addSubview(nameImageView)
+            self.multiPersonBackViews.append(backView)
+            self.view.addSubview(backView)
+            let multiPersonView = MediaRenderView(frame: CGRect.init(0, 0, Int(multiPersonViewHeight), Int(multiPersonViewHeight)))
+            multiPersonView.tag = tag
             self.multiPersonViews.append(multiPersonView)
             self.multiPersonViewDict[tag] = false
+            backView.addSubview(multiPersonView)
         }
     }
     
-    private func deleteMultiPersonViews(_ renderViews: [MediaRenderView]) {
-        
+    private func deployMultiPersonViewVideo(_ auxVideo: RemoteAuxVideo){
+        if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag] {
+            self.multiPersonViewDict[renderView.tag] = true
+            let idx = renderView.tag - 10000
+            let backView = self.multiPersonBackViews[idx]
+            backView.subviews.forEach { (subView) in
+                if subView.isKind(of: UIImageView.self), let name = auxVideo.person?.email{
+                    (subView as! UIImageView).image = UIImage.getContactAvatorImage(name: name, size: spaceTableCellHeight-30, fontName: "HelveticaNeue-UltraLight", backColor: UIColor.MKColor.BlueGrey.P600)
+                }
+            }
+            if !rendered {
+                backView.transform = CGAffineTransform.init(scaleX: 1.4, y: 1.4)
+                UIView.animate(withDuration: 0.25, animations: {
+                    backView.alpha = 1.0
+                    backView.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
+                }) { (finished) in
+                    self.moveMultiPersonViewPositions()
+                }
+            }
+        }
+    }
+    
+    private func deleteMultiPersonViews(_ auxVideo: RemoteAuxVideo) {
+        if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag], rendered {
+            let idx = renderView.tag - 10000
+            let backView = self.multiPersonBackViews[idx]
+            UIView.animate(withDuration: 0.15, animations: {
+                backView.transform = CGAffineTransform.init(scaleX: 1.2, y: 1.2)
+                backView.alpha = 0
+            }) { (_) in
+                backView.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
+                let frame = CGRect.init(0, 0, Int(self.multiPersonViewHeight), Int(self.multiPersonViewHeight))
+                renderView.frame = frame
+                self.multiPersonViewDict[renderView.tag] = false
+                self.moveMultiPersonViewPositions()
+            }
+        }
     }
     
     private func moveMultiPersonViewPositions() {
-        
+        let viewArray = self.multiPersonBackViews.sorted { (view1, view2) -> Bool in
+            if view1.alpha > view2.alpha{
+                return true
+            }
+            else if view1.alpha == view2.alpha {
+                return view1.tag < view2.tag
+            }
+            else{
+                return false
+            }
+        }
+        var idx = 0
+        viewArray.forEach { (backView) in
+            backView.tag  = 10000 + idx
+            let x = idx * (Int(multiPersonViewHeight)+5) + 5
+            let y = 140
+            let frame = CGRect.init(x, y, Int(multiPersonViewHeight), Int(multiPersonViewHeight))
+            backView.layer.cornerRadius = multiPersonViewHeight/2
+            UIView.animate(withDuration: 0.25){
+                backView.frame = frame
+            }
+            idx += 1
+        }
     }
     
-    private func deployMultiPersonViewVideo(_ auxVideo: RemoteAuxVideo){
-        if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag], !rendered {
-            multiPersonViewDict[renderView.tag] = true
-            self.view.addSubview(renderView)
-            renderView.transform = CGAffineTransform.init(scaleX: 0.0, y: 0.0)
-            UIView.beginAnimations("addMultiView", context: nil)
-            UIView.setAnimationDuration(0.25)
-            UIView.setAnimationCurve(.easeInOut)
-            renderView.alpha = 1.0
-            renderView.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
-            UIView.commitAnimations()
+    private func updateMultiPersonActiveSpeaker() {
+        self.currentCall?.remoteAuxVideos.forEach({ (auxVideo) in
+            if let isActiveSpeaker = auxVideo.person?.isActiveSpeaker, isActiveSpeaker {
+                self.deleteMultiPersonViews(auxVideo)
+            }
+            else {
+                self.deployMultiPersonViewVideo(auxVideo)
+            }
+        })
+    }
+    
+    private func updateMultiRenderViewVideo(_ auxVideo: RemoteAuxVideo){
+        if let renderView = auxVideo.renderViews.first {
+            if auxVideo.isSendingVideo {
+                renderView.isHidden = false
+            }
+            else {
+                renderView.isHidden = true
+            }
         }
     }
     
@@ -403,59 +482,23 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         var buffx: CGFloat = 0
         var buffy: CGFloat = 0
         if let renderView = auxVideo.renderViews.first {
-            let idx = renderView.tag - 10000
             if rate > 1 {
                 viewWidth = size*rate
                 viewHeight = size
                 buffx = (viewWidth-size)/2
                 buffy = 0
-                x = ((size+5)*CGFloat(idx))-buffx
-                y = multiPersonViewY
+                x = -buffx
+                y = 0
             }
             else {
                 viewWidth = size
                 viewHeight = size/rate
                 buffx = 0
                 buffy = (viewHeight-size)/2
-                x = (size+5)*CGFloat(idx)
-                y = multiPersonViewY-buffy
+                x = 0
+                y = -buffy
             }
             renderView.frame = CGRect.init(x, y, viewWidth, viewHeight)
-            
-            let maskLayer = CALayer()
-            maskLayer.frame = CGRect.init(buffx, buffy, size, size)
-            maskLayer.backgroundColor = UIColor.black.cgColor
-            maskLayer.borderWidth = 2.0
-            maskLayer.masksToBounds = true
-            maskLayer.cornerRadius = size/2
-            renderView.layer.mask = maskLayer
-            
-            let borderLayer = CAShapeLayer()
-            borderLayer.frame = CGRect.init(buffx, buffy, size, size)
-            let path = UIBezierPath()
-            path.addArc(withCenter: CGPoint(x: size/2, y: size/2), radius: size/2-1, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
-            borderLayer.path = path.cgPath
-            borderLayer.strokeColor = Constants.Color.Theme.Main.cgColor
-            borderLayer.fillColor = UIColor.clear.cgColor
-            borderLayer.lineWidth = 2
-            renderView.layer.sublayers?.forEach{ subLayer in
-                if subLayer.isKind(of: CAShapeLayer.self){
-                    subLayer.removeFromSuperlayer()
-                }
-            }
-            renderView.layer.addSublayer(borderLayer)
-        }
-    }
-  
-    func updateUIforScreenShareing(_ isReceiving: Bool){
-        if(isReceiving){
-            UIView.animate(withDuration: 0.15, animations: {
-                self.screenShareBtn?.isHidden = false
-            })
-            self.screenShareView?.backgroundColor = UIColor.black
-        }else{
-            self.screenShareBtn?.isHidden = true
-            self.screenShareView?.backgroundColor = UIColor.clear
         }
     }
     
@@ -572,8 +615,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.backScrollView?.isPagingEnabled = true
         self.backScrollView?.showsHorizontalScrollIndicator = false
         self.backScrollView?.delegate = self
-        self.backScrollView?.contentSize = CGSize(Constants.Size.screenWidth*3, Constants.Size.screenHeight-114)
-        self.backScrollView?.contentOffset = CGPoint(Constants.Size.screenWidth, 0)
+        self.backScrollView?.contentSize = CGSize(Constants.Size.screenWidth*2, Constants.Size.screenHeight-114)
+        self.backScrollView?.contentOffset = CGPoint(0, 0)
         self.backScrollView?.bounces = false
         self.backScrollView?.layer.masksToBounds = false
         self.view.addSubview(self.backScrollView!)
@@ -583,21 +626,10 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             view.height == view.superview!.height - 114
         }
         
-        self.screenShareView = MediaRenderView(frame: CGRect.zero)
-        self.screenShareView?.backgroundColor = UIColor.clear
-        self.backScrollView?.addSubview(self.screenShareView!)
-        
-        constrain(self.screenShareView!) { view in
-            view.centerX == view.superview!.centerX
-            view.top == view.superview!.top-114
-            view.width == view.superview!.width
-            view.height == view.superview!.height + 114
-        }
-        
         self.hangupBtn = self.createButton(type: .hangup)
         self.backScrollView?.addSubview(self.hangupBtn!)
         constrain(self.hangupBtn!,self.view!) { view, backView in
-            view.centerX ==  view.superview!.centerX*3
+            view.centerX ==  view.superview!.centerX
             view.bottom == backView.bottom-28
             view.width == 48
             view.height == 48
@@ -605,27 +637,21 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.muteVoiceBtn = self.createButton(type: .muteVoice)
         self.muteVideoBtn = self.createButton(type: .muteVideo)
         self.switchCameraBtn = self.createButton(type: .switchCamera)
-        self.screenShareBtn = self.createButton(type: .screenShare)
-        self.screenShareBtn?.frame = CGRect(x: Constants.Size.screenWidth + 20, y: Constants.Size.screenHeight - 114 - 128, width: 32, height: 32)
-        self.screenShareBtn?.backgroundColor = UIColor.orange
-        self.screenShareBtn?.layer.cornerRadius = 16.0
         self.messageBtn = self.createButton(type: .message)
-        self.messageBtn?.frame = CGRect(x: Constants.Size.screenWidth*2 - 52, y: Constants.Size.screenHeight - 114 - 128, width: 32, height: 32)
+        self.messageBtn?.frame = CGRect(x: Constants.Size.screenWidth - 52, y: Constants.Size.screenHeight - 114 - 128, width: 32, height: 32)
         
         self.muteVideoBtn?.isEnabled = false
         self.muteVoiceBtn?.isEnabled = false
         self.muteVideoBtn?.tintColor = UIColor.white
         self.muteVoiceBtn?.tintColor = UIColor.white
         self.switchCameraBtn?.isEnabled = false
-        self.screenShareBtn?.isHidden = true
         self.messageBtn?.isEnabled = false
         self.backScrollView?.addSubview(self.muteVoiceBtn!)
         self.backScrollView?.addSubview(self.muteVideoBtn!)
         self.backScrollView?.addSubview(self.switchCameraBtn!)
-        self.backScrollView?.addSubview(self.screenShareBtn!)
         self.backScrollView?.addSubview(self.messageBtn!)
         constrain(self.muteVideoBtn!) { view in
-            view.centerX == view.superview!.centerX*3
+            view.centerX == view.superview!.centerX
         }
         constrain(self.muteVoiceBtn!, self.muteVideoBtn!, self.switchCameraBtn!,self.view!) { view1, view2, view3, backView in
             distribute(by: 40, horizontally: view1, view2, view3)
@@ -713,7 +739,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 
             case .message:
                 UIView.animate(withDuration: 0.25, animations: {
-                    self.backScrollView?.contentOffset = CGPoint(x: Constants.Size.screenWidth*2, y: 0)
+                    self.backScrollView?.contentOffset = CGPoint(x: Constants.Size.screenWidth, y: 0)
                 })
             }
         }
@@ -756,7 +782,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         if(self.messageTableView == nil){
             let inputViewY = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
             let Y = (inputViewY - messageTableViewHeight)
-            self.messageTableView = UITableView(frame: CGRect(Int(Constants.Size.screenWidth*2),Int(Y),Int(Constants.Size.screenWidth),Int(messageTableViewHeight)))
+            self.messageTableView = UITableView(frame: CGRect(Int(Constants.Size.screenWidth),Int(Y),Int(Constants.Size.screenWidth),Int(messageTableViewHeight)))
             self.messageTableView?.separatorStyle = .none
             self.messageTableView?.backgroundColor = UIColor.clear
             self.messageTableView?.delegate = self
@@ -766,12 +792,12 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     private func setUpBottomView(){
-        let bottomViewWidth = Constants.Size.screenWidth*2
+        let bottomViewWidth = Constants.Size.screenWidth
         let Y = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
         self.buddiesInputView = BuddiesInputView(frame:  CGRect(x: bottomViewWidth, y:Y, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!, contacts: self.spaceModel?.spaceMembers)
         self.buddiesInputView?.isInputViewInCall = true
         self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
-            self.sendMessage(text: textStr, assetList, mentionList)
+            self.sendMessage(text: textStr, assetList, mentionList, mentionPositions)
         }
         self.backScrollView?.addSubview(self.buddiesInputView!)
     }
@@ -811,7 +837,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     // MARK: - WebexSDK: post message current space
-    func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
+    func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil, _ menpositions:[Range<Int>]){
         let tempMessageModel = BDSMessage()
         tempMessageModel.spaceId = self.spaceModel?.spaceId
         tempMessageModel.messageState = MessageState.willSend
@@ -837,6 +863,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 }
             }
             tempMessageModel.mentionList = mentionModels
+            tempMessageModel.text = String.processMentionString(contentStr: text, mentions: mentionModels, mentionsArr: menpositions)
         }
         if let models = assetList, models.count>0{
             var files : [LocalFile] = []

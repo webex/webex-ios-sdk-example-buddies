@@ -20,6 +20,8 @@
 
 import Foundation
 import UIKit
+import WebexSDK
+
 func ~=(lhs: String, rhs: String) -> Bool {
     return lhs.caseInsensitiveCompare(rhs) == ComparisonResult.orderedSame
 }
@@ -125,6 +127,59 @@ extension String {
         var linesArray: [String] = []
         self.enumerateLines { line, _ in linesArray.append(line) }
         let result = linesArray.filter{$0.isEmpty}.count
+        return result
+    }
+    
+    // MARK: - Markup string
+    static func processMentionString(contentStr: String?, mentions: [Mention], mentionsArr: [Range<Int>])-> String{
+        var result: String = ""
+        if let contentStr = contentStr{
+            var markedUpContent = contentStr
+            var mentionStringLength = 0
+            for index in 0..<mentionsArr.count{
+                let mention = mentions[index]
+                let mentionItem = mentionsArr[index]
+                let startPosition = (mentionItem.lowerBound) + mentionStringLength
+                let endPostion = (mentionItem.upperBound) + mentionStringLength
+                if markedUpContent.length < startPosition || markedUpContent.length < markedUpContent.startIndex.hashValue + endPostion{
+                    continue
+                }
+                let startIndex = markedUpContent.index(markedUpContent.startIndex, offsetBy: startPosition)
+                let endIndex = markedUpContent.index(markedUpContent.startIndex, offsetBy: endPostion)
+                let mentionContent = markedUpContent[startPosition..<endPostion]
+                switch mention{
+                case .all:
+                    let markupStr = markUpString(mentionContent: mentionContent, spaceType: "all", mentionType: "groupMention")
+                    markedUpContent = markedUpContent.replacingCharacters(in: startIndex..<endIndex, with: markupStr)
+                    mentionStringLength += (markupStr.count - (mentionContent?.count)!)
+                    break
+                case .person(let personId):
+                    let markupStr = markUpString(mentionContent: mentionContent, mentionId: personId, mentionType: "person")
+                    markedUpContent = markedUpContent.replacingCharacters(in: startIndex..<endIndex, with: markupStr)
+                    mentionStringLength += (markupStr.count - (mentionContent?.count)!)
+                    break
+                }
+            }
+            result = markedUpContent
+        }
+        return result
+    }
+    
+    static func markUpString(mentionContent: String?, mentionId: String? = nil, spaceType: String?=nil, mentionType: String)->String{
+        var result = "<spark-mention"
+        if let mentionid = mentionId{
+            result = result + " data-object-id=" + mentionid
+        }
+        if let spacetype = spaceType{
+            result = result + " data-group-type=" + spacetype
+        }
+        
+        result = result + " data-object-type=" + mentionType
+        result = result + ">"
+        if let content = mentionContent{
+            result = result + content
+        }
+        result = result + "</spark-mention>"
         return result
     }
  }

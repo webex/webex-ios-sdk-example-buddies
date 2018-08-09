@@ -27,12 +27,10 @@ class TeamListViewController: HomeViewController, UITableViewDelegate, UITableVi
     private var teamList: [Team] = Array()
     private var tableView: UITableView?
     
-    
     // MARK: - Life Circle
     override init(mainViewController: MainViewController) {
         super.init(mainViewController : mainViewController)
     }
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()

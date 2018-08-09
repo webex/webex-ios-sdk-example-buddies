@@ -229,7 +229,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
         self.present(alertView, animated: true)
     }
 
-    // MARK: BaseViewController Functions Override
+    // MARK: - BaseViewController Functions Override
     override func updateViewController() {
         self.updateNavigationItems()
         if (User.CurrentUser.loginType == .User) {
@@ -252,7 +252,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
         self.tableView?.reloadData()
     }
     
-    // MARK: other functions
+    // MARK: - other functions
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.

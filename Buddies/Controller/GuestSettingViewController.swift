@@ -36,7 +36,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     private var spaceVC : SpaceViewController?
     private var callVC: BuddiesCallViewController?
     
-    // MARK : Life Circle
+    // MARK : - Life Circle
     override func viewDidLoad() {
         if(User.CurrentUser.loginType == .None){
             self.title = "Configuration"
@@ -51,6 +51,62 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     
     override func viewWillDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    // MARK: - WebexSDK CALL/Message Function Implementation
+    @objc
+    public func makeWebexCall(sender: UIButton){
+        let index = sender.tag - 20000
+        let space = User.CurrentUser[index]!
+        if(space.type == SpaceType.direct){
+            let contact = space.contact!
+            self.callVC = BuddiesCallViewController(callee: contact)
+            self.present(self.callVC!, animated: true) {
+                self.callVC?.beginCall(isVideo: true)
+            }
+        }
+    }
+    
+    @objc public func makeWebexMessage(sender: UIButton){
+        let index = sender.tag - 20000
+        let spaceModel = User.CurrentUser[index]!
+        spaceModel.unReadedCount = 0
+        if let unreadLabel = self.view.viewWithTag(index+10000){
+            unreadLabel.removeFromSuperview()
+        }
+        self.spaceVC = SpaceViewController(space: spaceModel)
+        self.navigationController?.pushViewController(self.spaceVC!, animated: true)
+    }
+    
+    public func receiveNewMessage( _ messageModel: Message){
+        if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
+            if messageModel.personEmail == spaceModel.localSpaceId{
+                spaceVC.receiveNewMessage(message: messageModel)
+                return
+            } else{
+                if let space = User.CurrentUser[messageModel.personEmail!]{
+                    space.unReadedCount += 1
+                    self.updateUnreadedLabels()
+                }
+            }
+        }
+        else if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
+            if messageModel.personEmail == spaceModel.localSpaceId{
+                callVC.receiveNewMessage(message: messageModel)
+                return
+            } else{
+                if let space = User.CurrentUser[messageModel.personEmail!]{
+                    space.unReadedCount += 1
+                    self.updateUnreadedLabels()
+                }
+            }
+        }
+        else{
+            if let space = User.CurrentUser[messageModel.personEmail!]{
+                space.unReadedCount += 1
+                self.updateUnreadedLabels()
+            }
+        }
     }
 
     
@@ -307,7 +363,6 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     // MARK: - WebexSDK: JWT Authentication Implementation
     @objc
     func authenticateWithJWT(){
-        
         self.addedEmailDict = Dictionary()
         if(self.healthcareProTF?.text != nil && self.healthcareProTF?.text?.length != 0){
             if let _ = EmailAddress.fromString((self.healthcareProTF?.text)!){
@@ -445,7 +500,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
     }
     
-    // MARK: TextField Delegate
+    // MARK: - TextField Delegate
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
@@ -459,63 +514,8 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
         return true
     }
-    
-    // MARK: WebexSDK CALL/Message Function Implementation
-    @objc
-    public func makeWebexCall(sender: UIButton){
-        let index = sender.tag - 20000
-        let space = User.CurrentUser[index]!
-        if(space.type == SpaceType.direct){
-            let contact = space.contact!
-            self.callVC = BuddiesCallViewController(callee: contact)
-            self.present(self.callVC!, animated: true) {
-                self.callVC?.beginCall(isVideo: true)
-            }
-        }
-    }
 
-    @objc public func makeWebexMessage(sender: UIButton){
-        let index = sender.tag - 20000
-        let spaceModel = User.CurrentUser[index]!
-        spaceModel.unReadedCount = 0
-        if let unreadLabel = self.view.viewWithTag(index+10000){
-            unreadLabel.removeFromSuperview()
-        }
-        self.spaceVC = SpaceViewController(space: spaceModel)
-        self.navigationController?.pushViewController(self.spaceVC!, animated: true)
-    }
-    
-    public func receiveNewMessage( _ messageModel: Message){
-        if let spaceVC = self.spaceVC, let spaceModel = self.spaceVC?.spaceModel{
-            if messageModel.personEmail == spaceModel.localSpaceId{
-                spaceVC.receiveNewMessage(message: messageModel)
-                return
-            } else{
-                if let space = User.CurrentUser[messageModel.personEmail!]{
-                    space.unReadedCount += 1
-                    self.updateUnreadedLabels()
-                }
-            }
-        }
-        else if let callVC = self.callVC, let spaceModel = self.callVC?.spaceModel{
-            if messageModel.personEmail == spaceModel.localSpaceId{
-                callVC.receiveNewMessage(message: messageModel)
-                return
-            } else{
-                if let space = User.CurrentUser[messageModel.personEmail!]{
-                    space.unReadedCount += 1
-                    self.updateUnreadedLabels()
-                }
-            }
-        }
-        else{
-            if let space = User.CurrentUser[messageModel.personEmail!]{
-                space.unReadedCount += 1
-                self.updateUnreadedLabels()
-            }
-        }
-    }
-    
+    // MARK: - Other functions
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
