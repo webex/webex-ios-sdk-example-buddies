@@ -278,7 +278,15 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 break
             case .remoteSendingScreenShare:
                 break
-            case .activeSpeakerChangedEvent:
+            case .activeSpeakerChangedEvent(let membership):
+                print("+++++++++++++++ACTIVESPEAKER CHANGE+++++++++++++++++++")
+                self?.currentCall?.remoteAuxVideos.forEach{ auxVideo in
+                    if let memberEmail = membership.email, let speakerEmail = auxVideo.person?.email, memberEmail == speakerEmail {
+                        self?.deleteMultiPersonViews(auxVideo)
+                    }else if let _ = auxVideo.person {
+                        self?.deployMultiPersonViewVideo(auxVideo)
+                    }
+                }
                 break
             default:
                 break
@@ -384,7 +392,11 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     private func deployMultiPersonViewVideo(_ auxVideo: RemoteAuxVideo){
+        if let person = auxVideo.person, person.email == self.currentCall?.activeSpeaker?.email {
+            return
+        }
         if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag] {
+            self.updateMultiRenderViewSize(auxVideo)
             self.multiPersonViewDict[renderView.tag] = true
             let idx = renderView.tag - 10000
             let backView = self.multiPersonBackViews[idx]
