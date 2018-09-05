@@ -24,7 +24,7 @@ import Cartography
 import WebexSDK
 import Photos
 
-class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate{
+class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate, MultiStreamObserver{
     
     // MARK: - UI variables
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -47,15 +47,20 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private var isSpaceCall: Bool = false
     private var memberShipList: [CallMembership]?
     private var memberShipViewList: [CallMemberShipView]? = []
+    private var currentMultiViewIdx: Int = 10000
     
     /// removeVideoView receives and presents remote camera
     private(set) var remoteVideoView: MediaRenderView?
     /// localVideoView present local camera video
     private(set) var localVideoView: MediaRenderView?
     /// multiStream present render view
+    private var activeSpeakerImageView: UIImageView?
     private(set) var multiPersonViews = [MediaRenderView]()
     private(set) var multiPersonBackViews = [UIView]()
     private var multiPersonViewDict: [Int: Bool] = [Int: Bool]()
+    var onAuxStreamChanged: ((AuxStreamChangeEvent) -> Void)?
+    var auxStreamAvailable: (() -> MediaRenderView?)?
+    var onAuxStreamUnavailable: (() -> MediaRenderView?)?
     
     // MARK: Message Feature UI
     private static var callContext = 0
@@ -185,7 +190,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
-    
     private func answerCall(_ call: Call, _ answerAction: CXAction){
         self.currentCall = call
         KTActivityIndicator.singleton.hide()
@@ -202,6 +206,13 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
+    private func updateRemoteViewImageView() {
+        if let name = self.currentCall?.activeSpeaker?.email{
+            activeSpeakerImageView?.alpha = 1.0
+            self.activeSpeakerImageView?.image = UIImage.getContactAvatorImage(name: name, size: spaceTableCellHeight-30, fontName: "HelveticaNeue-UltraLight", backColor: UIColor.MKColor.BlueGrey.P600)
+        }
+    }
+    
     private func resetViews(){
         self.remoteVideoView?.removeFromSuperview()
         self.localVideoView?.removeFromSuperview()
@@ -213,7 +224,10 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     // MARK: - WebexSDK: call state change processing code here...
     private func callStateChangeCallBacks(call: Call) {
+        
         self.memberShipList = call.memberships.filter({$0.email != User.CurrentUser.email})
+        self.updateRemoteViewImageView()
+
         /* Callback when remote participant(s) answered and this *call* is connected. */
         call.onConnected = { [weak self] in
             print("Call ======= > Connected")
@@ -258,7 +272,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             case .remoteSendingAudio:
                 break
                 /* This might be triggered when the remote party muted or unmuted the video. */
-            case .remoteSendingVideo:
+            case .remoteSendingVideo(let state):
+                self?.remoteVideoView?.isHidden = !state
                 break
                 /* This might be triggered when the local party muted or unmuted the video. */
             case .sendingAudio:
@@ -278,15 +293,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 break
             case .remoteSendingScreenShare:
                 break
-            case .activeSpeakerChangedEvent(let membership):
-                print("+++++++++++++++ACTIVESPEAKER CHANGE+++++++++++++++++++")
-                self?.currentCall?.remoteAuxVideos.forEach{ auxVideo in
-                    if let memberEmail = membership.email, let speakerEmail = auxVideo.person?.email, memberEmail == speakerEmail {
-                        self?.deleteMultiPersonViews(auxVideo)
-                    }else if let _ = auxVideo.person {
-                        self?.deployMultiPersonViewVideo(auxVideo)
-                    }
-                }
+            case .activeSpeakerChangedEvent:
+                self?.updateRemoteViewImageView()
                 break
             default:
                 break
@@ -320,45 +328,30 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         
         if self.spaceModel?.type == SpaceType.group{
             self.setUpMultiPersonViews()
-            self.multiPersonViews.forEach{ multiView in
-                call.subscribeRemoteAuxVideo(view: multiView){
-                    result in
-                    switch result {
-                    case .success(_):
-                        break
-                    case .failure(let error):
-                        print("ERROR: \(String(describing: error))")
-                        break
-                    }
-                }
+        }
+        
+        call.multiStreamObserver = self
+        
+        self.auxStreamAvailable = {
+            if let tag = self.multiPersonViewDict.filter({$0.value == false}).first?.key{
+                self.multiPersonViewDict[tag] = true
+                return self.multiPersonViews[tag-10000]
+            }else{
+                return nil
             }
         }
         
-        call.onRemoteAuxVideoChanged = {
-            event in
+        self.onAuxStreamChanged = { event in
             switch event {
-            case .remoteAuxVideoPersonChangedEvent(let remoteAuxVideo):
-                print("========remoteAuxVideoPersonChangedEvent:\(remoteAuxVideo.person?.email ?? "none")============")
-                if remoteAuxVideo.person != nil {
-                    self.deployMultiPersonViewVideo(remoteAuxVideo)
-                }
-                else {
-                    self.deleteMultiPersonViews(remoteAuxVideo)
-                }
-            case .receivingAuxVideoEvent(let remoteAuxVideo):
-                print("========receivingAuxVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
-                print("========remoteAuxSendingVideoEvent isRceiving:\(remoteAuxVideo.isReceivingVideo)============")
-                break
-            case .remoteAuxSendingVideoEvent(let remoteAuxVideo):
-                print("========remoteAuxSendingVideoEvent:\(remoteAuxVideo.person?.email ?? "none")============")
-                print("========remoteAuxSendingVideoEvent isSending:\(remoteAuxVideo.isSendingVideo)============")
-                self.updateMultiRenderViewVideo(remoteAuxVideo)
-                break
-            case .remoteAuxVideoSizeChangedEvent(let remoteAuxVideo):
-                self.updateMultiRenderViewSize(remoteAuxVideo)
-                print("Auxiliary video size changed:\(remoteAuxVideo.remoteAuxVideoSize)")
-                break
-            default:
+            case.auxStreamOpenedEvent( _): break
+            case .auxStreamClosedEvent(let renderView,_):
+                self.deleteMultiPersonViews(renderView)
+            case .auxStreamPersonChangedEvent(let auxStream,_,_):
+                self.deployMultiPersonViewVideo(auxStream)
+            case .auxStreamSendingVideoEvent (let auxStream):
+                self.updateMultiRenderViewVideo(auxStream)
+            case .auxStreamSizeChangedEvent(let auxStream):
+                self.updateMultiRenderViewSize(auxStream)
                 break
             }
         }
@@ -391,34 +384,31 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
-    private func deployMultiPersonViewVideo(_ auxVideo: RemoteAuxVideo){
-        if let person = auxVideo.person, person.email == self.currentCall?.activeSpeaker?.email {
-            return
-        }
-        if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag] {
-            self.updateMultiRenderViewSize(auxVideo)
+    private func deployMultiPersonViewVideo(_ auxVideo: AuxStream?){
+        if let renderView = auxVideo?.renderView {
+            if(auxVideo != nil) {
+                self.updateMultiRenderViewSize(auxVideo!)
+            }
             self.multiPersonViewDict[renderView.tag] = true
             let idx = renderView.tag - 10000
             let backView = self.multiPersonBackViews[idx]
             backView.subviews.forEach { (subView) in
-                if subView.isKind(of: UIImageView.self), let name = auxVideo.person?.email{
+                if subView.isKind(of: UIImageView.self), let name = auxVideo?.person?.email{
                     (subView as! UIImageView).image = UIImage.getContactAvatorImage(name: name, size: spaceTableCellHeight-30, fontName: "HelveticaNeue-UltraLight", backColor: UIColor.MKColor.BlueGrey.P600)
                 }
             }
-            if !rendered {
-                backView.transform = CGAffineTransform.init(scaleX: 1.4, y: 1.4)
-                UIView.animate(withDuration: 0.25, animations: {
-                    backView.alpha = 1.0
-                    backView.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
-                }) { (finished) in
-                    self.moveMultiPersonViewPositions()
-                }
+            backView.transform = CGAffineTransform.init(scaleX: 1.4, y: 1.4)
+            UIView.animate(withDuration: 0.25, animations: {
+                backView.alpha = 1.0
+                backView.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
+            }) { (finished) in
+                self.moveMultiPersonViewPositions()
             }
         }
     }
     
-    private func deleteMultiPersonViews(_ auxVideo: RemoteAuxVideo) {
-        if let renderView = auxVideo.renderViews.first, let rendered = multiPersonViewDict[renderView.tag], rendered {
+    private func deleteMultiPersonViews(_ renderView: MediaRenderView) {
+        if let rendered = multiPersonViewDict[renderView.tag], rendered {
             let idx = renderView.tag - 10000
             let backView = self.multiPersonBackViews[idx]
             UIView.animate(withDuration: 0.15, animations: {
@@ -460,19 +450,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
-    private func updateMultiPersonActiveSpeaker() {
-        self.currentCall?.remoteAuxVideos.forEach({ (auxVideo) in
-            if let isActiveSpeaker = auxVideo.person?.isActiveSpeaker, isActiveSpeaker {
-                self.deleteMultiPersonViews(auxVideo)
-            }
-            else {
-                self.deployMultiPersonViewVideo(auxVideo)
-            }
-        })
-    }
-    
-    private func updateMultiRenderViewVideo(_ auxVideo: RemoteAuxVideo){
-        if let renderView = auxVideo.renderViews.first {
+    private func updateMultiRenderViewVideo(_ auxVideo: AuxStream){
+        if let renderView = auxVideo.renderView {
             if auxVideo.isSendingVideo {
                 renderView.isHidden = false
             }
@@ -482,10 +461,14 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
     
-    private func updateMultiRenderViewSize(_ auxVideo: RemoteAuxVideo){
-        let width = CGFloat(auxVideo.remoteAuxVideoSize.width)
-        let height = CGFloat(auxVideo.remoteAuxVideoSize.height)
-        let rate: CGFloat = width/height
+    private func updateMultiRenderViewSize(_ auxVideo: AuxStream){
+        let width = CGFloat(auxVideo.auxStreamSize.width)
+        let height = CGFloat(auxVideo.auxStreamSize.height)
+        
+        var rate: CGFloat = width/height
+        if height == 0 {
+            rate = 1
+        }
         let size: CGFloat = multiPersonViewHeight
         var x: CGFloat = 0
         var y: CGFloat = 0
@@ -493,7 +476,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         var viewHeight: CGFloat = 0
         var buffx: CGFloat = 0
         var buffy: CGFloat = 0
-        if let renderView = auxVideo.renderViews.first {
+        if let renderView = auxVideo.renderView {
             if rate > 1 {
                 viewWidth = size*rate
                 viewHeight = size
@@ -578,6 +561,16 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             view.size == view.superview!.size;
             view.center == view.superview!.center;
         }
+        
+        let frame = CGRect(x: kScreenWidth/2-60, y: kScreenHeight/2-60, width: 120, height: 120)
+        activeSpeakerImageView = UIImageView(frame: frame)
+        activeSpeakerImageView?.backgroundColor = UIColor.clear
+        activeSpeakerImageView?.layer.cornerRadius = 60
+        activeSpeakerImageView?.layer.masksToBounds = true
+        activeSpeakerImageView?.layer.borderColor = UIColor.MKColor.Green.P400.cgColor
+        activeSpeakerImageView?.layer.borderWidth = 2.0
+        activeSpeakerImageView?.alpha = 0.0
+        self.view.addSubview(activeSpeakerImageView!)
         
         self.remoteVideoView = MediaRenderView(frame: self.view.bounds)
         self.remoteVideoView?.backgroundColor = UIColor.clear
