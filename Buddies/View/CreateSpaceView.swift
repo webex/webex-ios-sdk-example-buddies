@@ -20,36 +20,43 @@
 
 import UIKit
 import WebexSDK
-
-class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate{
+class CreateSpaceView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate {
     
     // MARK: - UI variables
-    var roomCreatedBlock: ((RoomModel, Bool)->())?
+    var spaceCreateBlock: ((SpaceModel)->())?
     
     private var backView : UIView?
     private var addedCollectionView: UICollectionView?
-    private var buddiesCollectionView: UICollectionView?
+    var buddiesCollectionView: UICollectionView?
     private var peopleTableView: UITableView?
     private var segmentControll: UISegmentedControl?
     private var searchBarBackView: UIView?
     private var searchBar: UISearchBar?
-    private var roomNameTextFeild: MKTextField?
+    private var spaceNameTextFeild: MKTextField?
     private var addedContactList: [Contact] = []
     private var peopleList : [Contact] = []
     private var viewWidth = 0
     private var viewHeight = 0
     private var backViewWidth = 0
     private var backViewHeight = 0
-    
+
     enum SegmentType : Int{
         case Buddies = 0
         case People = 1
     }
     
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.viewWidth = Int(frame.size.width)
+        self.viewHeight = Int(frame.size.height)
+        self.backViewWidth = viewWidth
+        self.backViewHeight = viewHeight
+        self.setUpSubViews()
+    }
     
-    // MARK: - WebexSDK: listing people/ create room
+    // MARK: - WebexSDK: listing people
     func requetPeopleList(searchStr: String){
-        KTActivityIndicator.singleton.show(title: "Loading")
+        KTActivityIndicator.singleton.show(title: "Loading...")
         if let email = EmailAddress.fromString(searchStr) {
             WebexSDK?.people.list(email: email, max: 20) {
                 (response: ServiceResponse<[Person]>) in
@@ -89,73 +96,11 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
             }
         }
     }
-    func requestCreateRoom(){
-        let localGroupId = Group.getGroupRoomId(contacts: self.addedContactList)
-        if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId){
-            if(self.roomCreatedBlock != nil){
-                self.roomCreatedBlock!(roomModel,false)
-            }
-            self.disMiss()
-            return;
-        }
-        var roomTitle = self.roomNameTextFeild?.text
-        KTActivityIndicator.singleton.show(title: "Creating")
-        if(roomTitle?.length == 0){
-            roomTitle = Group.getGroupRoomName(contacts: self.addedContactList)
-        }
-        WebexSDK?.rooms.create(title: roomTitle!) { (response: ServiceResponse<Room>) in
-            switch response.result {
-            case .success(let value):
-                if let createdRoom = RoomModel(room: value){
-                    let threahGroup = DispatchGroup()
-                    for contact in self.addedContactList{
-                        DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                            WebexSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
-                                switch response.result{
-                                case .success(_):
-                                    createdRoom.roomMembers?.append(contact)
-                                    break
-                                case .failure(let error):
-                                    KTInputBox.alert(error: error)
-                                    break
-                                }
-                            })
-                        }))
-                    }
-                    createdRoom.localGroupId = localGroupId
-                    threahGroup.notify(queue: DispatchQueue.global(), execute: {
-                        DispatchQueue.main.async {
-                            KTActivityIndicator.singleton.hide()
-                            if(self.roomCreatedBlock != nil){
-                                self.roomCreatedBlock!(createdRoom, true)
-                            }
-                            self.disMiss()
-                        }
-                    })
-                }
-                break
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    KTActivityIndicator.singleton.hide()
-                    KTInputBox.alert(error: error)
-                }
-                break
-            }
-        }
-    }
+
     
-    // MARK: - UI Implementation
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.viewWidth = Int(frame.size.width)
-        self.viewHeight = Int(frame.size.height)
-        self.backViewWidth = viewWidth - 60
-        self.backViewHeight = viewHeight - 60
-        self.setUpSubViews()
-    }
     
+    // MARK: - UI Implemetation
     func setUpSubViews(){
-        self.setUpBlurView()
         self.setUpTitleView()
         self.setUpAddedCollectionView()
         self.setUpSegmentView()
@@ -163,15 +108,9 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         self.setUPBottomBtnView()
         
     }
-    func setUpBlurView(){
-        let blurView = UIVisualEffectView(frame: CGRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
-        blurView.effect = UIBlurEffect(style: .extraLight)
-        blurView.alpha = 0.7
-        self.addSubview(blurView)
-    }
     func setUpTitleView(){
-     
-        self.backView = UIView(frame: CGRect(x: 30, y: 30, width: backViewWidth, height: backViewHeight))
+        
+        self.backView = UIView(frame: CGRect(x: 0, y: 0, width: backViewWidth, height: backViewHeight))
         self.backView?.backgroundColor = UIColor.white
         self.backView?.setShadow(color: UIColor.gray, radius: 0.5, opacity: 0.5, offsetX: 0, offsetY: 0)
         self.addSubview(self.backView!)
@@ -179,22 +118,22 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         let titleLabel = UILabel(frame: CGRect(x: 15, y: 10, width: backViewWidth-30, height: 30))
         titleLabel.font = Constants.Font.InputBox.Title
         titleLabel.textColor = Constants.Color.Theme.DarkControl
-        titleLabel.text = "New Room"
+        titleLabel.text = "Space Name"
         titleLabel.textAlignment = .center
         self.backView?.addSubview(titleLabel)
         
-        self.roomNameTextFeild = MKTextField(frame: CGRect(x: 30, y: 40, width: backViewWidth-60, height: 40))
-        self.roomNameTextFeild?.delegate = self;
-        self.roomNameTextFeild?.textAlignment = .center
-        self.roomNameTextFeild?.tintColor = Constants.Color.Theme.Main;
-        self.roomNameTextFeild?.layer.borderColor = UIColor.clear.cgColor
-        self.roomNameTextFeild?.font = Constants.Font.InputBox.Input
-        self.roomNameTextFeild?.bottomBorderEnabled = true;
-        self.roomNameTextFeild?.floatingPlaceholderEnabled = false
-        self.roomNameTextFeild?.rippleEnabled = false;
-        self.roomNameTextFeild?.placeholder = "input room name"
-        self.roomNameTextFeild?.returnKeyType = .done;
-        self.backView?.addSubview(self.roomNameTextFeild!)
+        self.spaceNameTextFeild = MKTextField(frame: CGRect(x: 30, y: 40, width: backViewWidth-60, height: 40))
+        self.spaceNameTextFeild?.delegate = self;
+        self.spaceNameTextFeild?.textAlignment = .center
+        self.spaceNameTextFeild?.tintColor = Constants.Color.Theme.Main;
+        self.spaceNameTextFeild?.layer.borderColor = UIColor.clear.cgColor
+        self.spaceNameTextFeild?.font = Constants.Font.InputBox.Input
+        self.spaceNameTextFeild?.bottomBorderEnabled = true;
+        self.spaceNameTextFeild?.floatingPlaceholderEnabled = false
+        self.spaceNameTextFeild?.rippleEnabled = false;
+        self.spaceNameTextFeild?.placeholder = "input space name"
+        self.spaceNameTextFeild?.returnKeyType = .done;
+        self.backView?.addSubview(self.spaceNameTextFeild!)
     }
     
     func setUpAddedCollectionView(){
@@ -281,30 +220,17 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         line.backgroundColor = Constants.Color.Theme.DarkControl.cgColor
         btnBackView.layer .addSublayer(line)
         
-        let cancelBtn = UIButton(frame: CGRect(x: 0.0, y: 0.0, width: Double(backViewWidth/2), height: 50.0))
-        cancelBtn.setTitle("Cancel", for: .normal)
-        cancelBtn.setTitleColor(Constants.Color.Theme.DarkControl, for: .normal)
-        cancelBtn.addTarget(self, action: #selector(disMiss), for: .touchUpInside)
-        cancelBtn.titleLabel?.font = Constants.Font.InputBox.Button
-        btnBackView.addSubview(cancelBtn)
-        
-        let createBtn = UIButton(frame: CGRect(x: Double(backViewWidth/2), y: 0.0, width: Double(backViewWidth/2), height: 50.0))
-        createBtn.setTitle("Create", for: .normal)
+        let createBtn = UIButton(frame: CGRect(x: 0.0, y: 0.0, width: Double(backViewWidth), height: 50.0))
+        createBtn.setTitle("Create New Space", for: .normal)
         createBtn.setTitleColor(Constants.Color.Theme.Main, for: .normal)
-        createBtn.addTarget(self, action: #selector(createRoomBtnClicked), for: .touchUpInside)
+        createBtn.addTarget(self, action: #selector(createSpaceBtnClicked), for: .touchUpInside)
         createBtn.titleLabel?.font = Constants.Font.InputBox.Button
         btnBackView.addSubview(createBtn)
-        
-        let line1 = CALayer()
-        line1.frame = CGRect(x: Double(backViewWidth)/2, y: 0.0, width:0.5, height: 50)
-        line1.backgroundColor = Constants.Color.Theme.DarkControl.cgColor
-        btnBackView.layer .addSublayer(line1)
         
         self.backView?.addSubview(btnBackView)
     }
     
-    
-    // MARK: Page Logic Implementation
+    // MARK: UI Logic Implementation
     func checkAddedPeopleList(choosedContact: Contact)->Bool{
         let email = choosedContact.email
         if(self.addedContactList.find(equality: { $0.email == email }) == nil){
@@ -313,43 +239,53 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
             return false
         }
     }
-    
-    
-    func popUpOnWindow(){
-        self.backView?.alpha = 0.0
-        self.backView?.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        ((UIApplication.shared.delegate) as! AppDelegate).window?.addSubview(self)
-        UIView.animate(withDuration: 0.2, animations: {
-            UIView.setAnimationCurve(.easeInOut)
-            self.backView?.alpha = 1.0
-            self.backView?.transform = CGAffineTransform(scaleX: 1, y: 1)
-        }) { (_) in
-            
-        }
 
+    @objc private func createSpaceBtnClicked(){
+        let spaceTitle = self.spaceNameTextFeild?.text
+        KTActivityIndicator.singleton.show(title: "Loading...")
+        WebexSDK?.spaces.create(title: spaceTitle!, completionHandler: {(response: ServiceResponse<Space>) in
+            switch response.result {
+            case .success(let value):
+                let createdSpace = SpaceModel(space: value)
+                let threahSpace = DispatchGroup()
+                for contact in self.addedContactList{
+                    DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
+                        WebexSDK?.memberships.create(spaceId: createdSpace.spaceId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                            switch response.result{
+                            case .success(_):
+                                createdSpace.spaceMembers.append(contact)
+                                break
+                            case .failure(let error):
+                                KTInputBox.alert(error: error)
+                                break
+                            }
+                        })
+                    }))
+                }
+                
+                threahSpace.notify(queue: DispatchQueue.global(), execute: {
+                    DispatchQueue.main.async {
+                        KTActivityIndicator.singleton.hide()
+                        if let completionHandler = self.spaceCreateBlock {
+                            completionHandler(createdSpace)
+                        }
+                    }
+                })
+                break
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    KTActivityIndicator.singleton.hide()
+                    KTInputBox.alert(error: error)
+                }
+                break
+            }
+        })
     }
-    @objc func disMiss(){
-        User.CurrentUser.clearContactSelection()
-        UIView.animate(withDuration: 0.2, animations: {
-            UIView.setAnimationCurve(.easeInOut)
-            self.alpha = 0.0
-            self.backView?.alpha = 0.0
-            self.backView?.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        }) { (_) in
-            self.removeFromSuperview()
-        }
-
-    }
-    
-    @objc func createRoomBtnClicked(){
-        self.requestCreateRoom()
-    }
-    
     
     // MARK: UIcollectionView Delegate
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if(collectionView == self.buddiesCollectionView){
-            return User.CurrentUser.getSingleMemberGroup().count
+            return User.CurrentUser.getSingleMemberSpace().count
         }else{
             return  (self.addedContactList.count)
         }
@@ -357,7 +293,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if(collectionView == self.buddiesCollectionView){
-            let contact = User.CurrentUser.getSingleMemberGroup()[indexPath.item][0]
+            let contact = User.CurrentUser[indexPath.item]?.contact
             let cell: ContactCollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "BuddiesCollectionViewCell", for: indexPath) as! ContactCollectionViewCell
             cell.updateUIElements(cellWidth: (backViewWidth-20)/3, showDeleteBtn: false, contact: contact, onDelete: nil)
             return cell
@@ -396,7 +332,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
             }
         }
     }
-
+    
     // MARK: - UITableView Delegate
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 40
@@ -405,7 +341,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         if(self.searchBar == nil){
             self.searchBarBackView = UIView(frame: CGRect(x: 0, y: 0, width: (self.backView?.frame.size.width)!, height: 40))
             self.searchBarBackView?.backgroundColor = UIColor.white
-            self.searchBar = UISearchBar(frame: CGRect(0, 10, Constants.Size.screenWidth-90, 20))
+            self.searchBar = UISearchBar(frame: CGRect(0, 10, Constants.Size.screenWidth-30, 20))
             self.searchBar?.tintColor = Constants.Color.Theme.Main
             self.searchBar?.backgroundImage = UIImage()
             self.searchBar?.delegate = self
@@ -446,7 +382,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
             }
         }
     }
-
+    
     // MARK: SearchBar Delegate
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
@@ -459,17 +395,13 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         searchBar.resignFirstResponder()
         searchBar.text = ""
     }
-
+    
     // MARK: TextField Delegate
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
     }
-    
-    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
-
-

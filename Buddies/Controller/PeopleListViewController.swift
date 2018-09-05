@@ -21,34 +21,51 @@
 import UIKit
 import WebexSDK
 
+enum AddBuddiesPageType : Int{
+    case People = 0
+    case Space = 1
+}
+
 class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableViewDelegate,UITableViewDataSource {
 
     // MARK: - UI variables
+    public var spaceVC: SpaceViewController?
     private var peopleList: [Contact] = Array()
     private var tableView: UITableView?
     private var userBuddiesChanged: Bool = false
-    private var userGroupChanged: Bool = false
     private var segmentControll: UISegmentedControl?
     private var searchBarBackView: UIView?
-    private var createGroupView : CreateGroupView?
-    enum SegmentType : Int{
-        case People = 0
-        case Group = 1
-    }
+    private var createSpaceView : CreateSpaceView?
+    private var roomNavController: UINavigationController?
     private var searchBar: UISearchBar?
+    private var pageType: AddBuddiesPageType
     var completionHandler: ((Bool) ->Void)?
+    var spaceCreatedHandler: ((SpaceModel) -> Void)?
+    
+    init(pageType: AddBuddiesPageType){
+        self.pageType = pageType
+        super.init()
+    }
     
     // MARK: - Life Circle
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = Constants.Color.Theme.Background
-        self.setUpSegmentControl()
-        self.setUptableView()
+        if pageType == .People{
+            self.title = "Search Buddies"
+            self.setUptableView()
+        }
+        else {
+            self.title = "New Space"
+            self.setUpCreateSpaceView()
+        }
+        let rightNavBarButton = UIBarButtonItem(image: UIImage(named: "icon_close"), style: .done, target: self, action: #selector(dismissVC))
+        self.navigationItem.rightBarButtonItem = rightNavBarButton
     }
     
     // MARK: - WebexSDK: Listing people
     func requetPeopleList(searchStr: String){
-        KTActivityIndicator.singleton.show(title: "Loading")
+        KTActivityIndicator.singleton.show(title: "Loading...")
         if let email = EmailAddress.fromString(searchStr) {
             WebexSDK?.people.list(email: email, max: 20) {
                 (response: ServiceResponse<[Person]>) in
@@ -90,35 +107,30 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
     }
 
     // MARK: WebexSDK: CALL Function Implementation
-    
     /* webexSDK callwith contact model */
     public func makeWebexCall(_ contact: Contact){
-    
         let callVC = BuddiesCallViewController(callee: contact)
         self.present(callVC, animated: true) {
             callVC.beginCall(isVideo: true)
         }
     }
-    
-    // MARK:  - UI Implementation
-    func setUpSegmentControl(){
-        if(self.segmentControll == nil){
-            self.segmentControll = UISegmentedControl(items: ["People","Group"])
-            self.segmentControll?.frame = CGRect(x: 0, y: 0, width: Constants.Size.screenWidth-120, height: 30)
-            self.segmentControll?.addTarget(self, action: #selector(segmentClicked(sender:)), for: .valueChanged)
-            self.segmentControll?.tintColor = UIColor.white
-            
-            let attr = NSDictionary(object: Constants.Font.InputBox.Button, forKey: NSAttributedStringKey.font as NSCopying)
-            self.segmentControll?.setTitleTextAttributes(attr as [NSObject : AnyObject] , for: .normal)
-            
-            self.segmentControll?.selectedSegmentIndex = 0
-            self.navigationItem.titleView = segmentControll
-            
-            let rightNavBarButton = UIBarButtonItem(image: UIImage(named: "icon_close"), style: .done, target: self, action: #selector(dismissVC))
-
-            self.navigationItem.rightBarButtonItem = rightNavBarButton
+    // MARK: WebexSDK: MESSAGE Function Implementation
+    /* webexSDK callwith contact model */
+    public func makeWebexMessage(_ contact: Contact){
+        if let spaceModel = User.CurrentUser[contact.email] {
+            spaceVC = SpaceViewController.init(space: spaceModel)
+            let roomNavController = UINavigationController.init(rootViewController: spaceVC!)
+            let backImageView = UIImageView.init(image: UIImage(named: "icon_back"))
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(dismissSpaceVC))
+            singleTap.numberOfTapsRequired = 1;
+            backImageView.isUserInteractionEnabled = true
+            backImageView.addGestureRecognizer(singleTap)
+            spaceVC!.navigationItem.leftBarButtonItem = UIBarButtonItem.init(customView: backImageView)
+            self.present(roomNavController, animated: true) {}
         }
     }
+    
+    // MARK:  - UI Implementation
     func setUpSearchBar() -> UIView{
         if(self.searchBar == nil){
             self.searchBarBackView = UIView(frame: CGRect(x: 0, y: 0, width: Constants.Size.screenWidth, height: 40))
@@ -145,46 +157,31 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
         self.view.addSubview(self.tableView!)
     }
     
-    func setUpCreateGroupView(){
-        if(self.createGroupView == nil){
-            self.createGroupView = CreateGroupView(frame: CGRect(x: 0.0, y: 0.0, width: CGFloat(Constants.Size.screenWidth), height: CGFloat(Constants.Size.screenHeight-CGFloat(Constants.Size.navHeight))))
-            self.createGroupView?.groupCreateBlock = { (newGroup : Group) in
-                if User.CurrentUser[newGroup.groupId!] == nil {
-                    User.CurrentUser.addNewGroup(newGroup: newGroup)
-                    self.userGroupChanged = true
+    func setUpCreateSpaceView(){
+        if(self.createSpaceView == nil){
+            self.createSpaceView = CreateSpaceView(frame: CGRect(x: 0.0, y: 0.0, width: CGFloat(Constants.Size.screenWidth), height: CGFloat(Constants.Size.screenHeight-CGFloat(Constants.Size.navHeight))))
+            self.createSpaceView?.spaceCreateBlock = { (newSpace : SpaceModel) in
+                if let spaceCreatedHandler = self.spaceCreatedHandler {
+                    spaceCreatedHandler(newSpace)
                     self.dismissVC()
-                }else {
-                    KTInputBox.alert(title: "The user/group is already added")
-                    return
                 }
             }
         }
-        self.view.addSubview(self.createGroupView!)
+        self.view.addSubview(self.createSpaceView!)
     }
     
     @objc func dismissVC(){
         self.searchBar?.resignFirstResponder()
-        User.CurrentUser.clearContactSelection()
-        if(self.completionHandler != nil){
-            self.completionHandler!(self.userGroupChanged || self.userBuddiesChanged)
+        if let completionHandler = self.completionHandler{
+            completionHandler(self.userBuddiesChanged)
         }
         self.navigationController?.dismiss(animated: true, completion: {})
     }
     
-    // MARK: SegmentControll Delegate
-    @objc func segmentClicked(sender: UISegmentedControl){
-        if(sender.selectedSegmentIndex == SegmentType.Group.rawValue){
-            self.tableView?.removeFromSuperview()
-            self.setUpCreateGroupView()
-            if(self.createGroupView?.buddiesCollectionView != nil){
-                self.createGroupView?.buddiesCollectionView?.reloadData()
-            }
-        }else{
-            self.createGroupView?.removeFromSuperview()
-            self.setUptableView()
-        }
+    @objc func dismissSpaceVC(){
+        self.navigationController?.dismiss(animated: true, completion: {})
     }
-    
+
     // MARK: SearchBar Delegate
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         if let searchStr = searchBar.text{
@@ -223,8 +220,13 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
         let index = indexPath.row
         let contactModel = self.peopleList[index]
         
+        if User.CurrentUser[contactModel.email] == nil {
+            User.CurrentUser.addNewContactAsSpace(contact: contactModel)
+            self.userBuddiesChanged = true
+        }
+        
         let inputBox = KTInputBox(.Default(1));
-        inputBox.title = "Add to Buddies"
+        inputBox.title = "Buddies"
         inputBox.customiseInputElement = {(element: UIView, index: Int) in
             if let element = element as? MKTextField {
                 element.keyboardType = .emailAddress
@@ -236,41 +238,27 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
             }
             return element
         }
-        inputBox.onMiddle = { (_ btn: UIButton) in
-            self.makeWebexCall(contactModel)
-            return true
-        }
+        
         inputBox.customiseButton = { button, tag in
             if tag == 1 {
-                button.setTitle("Add", for: .normal)
+                button.setTitle("Call", for: .normal)
             }
             if(tag == 2){
-                button.setTitle("Call", for: .normal)
+                button.setTitle("Message", for: .normal)
             }
             return button;
         }
         
-      
+        inputBox.onMiddle = { (_ btn: UIButton) in
+            self.makeWebexMessage(contactModel)
+            return true
+        }
         
         inputBox.onSubmit = {(value: [AnyObject]) in
-            if let email = value.first as? String, let _ = EmailAddress.fromString(email) {
-                let singleGroupIdStr = email.md5
-                if User.CurrentUser[singleGroupIdStr!] == nil {
-                    User.CurrentUser.addNewContactAsGroup(contact: contactModel)
-                    self.userBuddiesChanged = true
-                    KTInputBox.alert(title: "Added successfully")
-                    return true;
-                }
-                else {
-                    KTInputBox.alert(title: "The user/group is already added")
-                    return false;
-                }
-            }
-            else {
-                inputBox.shake()
-                return false;
-            }
+            self.makeWebexCall(contactModel)
+            return true
         }
+        
         inputBox.show()
     }
     
@@ -279,7 +267,7 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-
-
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }

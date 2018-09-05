@@ -72,10 +72,8 @@ class ContactCollectionViewCell: UICollectionViewCell {
             self.addSubview(self.backView!)
         }
         if(self.imageView == nil){
-            
             self.imageView = UIImageView()
             self.imageView?.frame = CGRect(x: labelViewHeight/2, y: 0.0, width: imageViewWidth, height: imageViewWidth)
-
             self.imageView?.layer.cornerRadius = CGFloat(Double(imageViewWidth/2))
             self.imageView?.layer.masksToBounds = true
             self.imageView?.setShadow(color: UIColor.gray, radius: 1.0, opacity: 0.5, offsetX: 0, offsetY: 0)

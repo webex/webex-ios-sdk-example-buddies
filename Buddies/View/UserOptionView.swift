@@ -25,7 +25,7 @@ enum UserOptionType: Int {
     case GuestLogin
     case LogOut
     case Buddies
-    case Rooms
+    case Spaces
     case Teams
 }
 protocol UserOptionDelegate{
@@ -100,7 +100,8 @@ class UserOptionView: UIView {
                 JWTLoginBtn.layer.borderColor = UIColor.white.cgColor
                 JWTLoginBtn.layer.borderWidth = 1.0
                 JWTLoginBtn.setTitle("Guest Experience", for: .normal)
-            }else{
+            }
+            else {
                 let attStringSaySomething1 = NSAttributedString.init(string: "Configure for guest Indentity Usage",
                                                                      attributes: [NSAttributedStringKey.font: Constants.Font.NavigationBar.Button, NSAttributedStringKey.foregroundColor:UIColor.white,
                                                                                   NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue,
@@ -110,9 +111,8 @@ class UserOptionView: UIView {
             }
             JWTLoginBtn.addTarget(self, action: #selector(processBtnAction(sender:)), for: .touchUpInside)
             self.topUserInfoView?.addSubview(JWTLoginBtn)
-            
-        }else{
-            
+        }
+        else {
             let avatorImageView = UIImageView(frame: CGRect(x: 15, y: 70, width: 60, height: 60))
             if let url = User.CurrentUser.avatorUrl {
                 avatorImageView.sd_setImage(with: URL(string: url), placeholderImage: User.CurrentUser.placeholder)
@@ -132,7 +132,6 @@ class UserOptionView: UIView {
             nameLabel.font = Constants.Font.Home.Title
             self.topUserInfoView?.addSubview(nameLabel)
             
-    
             let emailLabel = UILabel(frame: CGRect(x: 85, y: 100, width: viewWidth-50, height: 20))
             emailLabel.text = User.CurrentUser.email
             emailLabel.textAlignment = .left
@@ -153,22 +152,22 @@ class UserOptionView: UIView {
             line1.backgroundColor = UIColor.white.cgColor
             buddiesButton.layer.addSublayer(line1)
             self.backView?.addSubview(buddiesButton)
-//            
-//            let roomsButton = UIButton(type: .system)
-//            roomsButton.frame = CGRect(x: 13, y: 210, width: viewWidth-60, height: 50)
-//            roomsButton.setTitle("Rooms", for: .normal)
-//            roomsButton.titleLabel?.font = Constants.Font.InputBox.Button
-//            roomsButton.setTitleColor(UIColor.white, for: .normal)
-//            roomsButton.contentHorizontalAlignment = .left
-//            roomsButton.tag = UserOptionType.Rooms.rawValue
-//            roomsButton.addTarget(self, action: #selector(processBtnAction(sender:)), for: .touchUpInside)
-//            
-//            let line2 = CALayer()
-//            line2.frame = CGRect(x: 0, y: 49, width: viewWidth-30, height: 0.5)
-//            line2.backgroundColor = UIColor.white.cgColor
-//            roomsButton.layer.addSublayer(line2)
-//            self.backView?.addSubview(roomsButton)
-//            
+            
+            let spacesButton = UIButton(type: .system)
+            spacesButton.frame = CGRect(x: 13, y: 210, width: viewWidth-60, height: 50)
+            spacesButton.setTitle("Spaces", for: .normal)
+            spacesButton.titleLabel?.font = Constants.Font.InputBox.Button
+            spacesButton.setTitleColor(UIColor.white, for: .normal)
+            spacesButton.contentHorizontalAlignment = .left
+            spacesButton.tag = UserOptionType.Spaces.rawValue
+            spacesButton.addTarget(self, action: #selector(processBtnAction(sender:)), for: .touchUpInside)
+
+            let line2 = CALayer()
+            line2.frame = CGRect(x: 0, y: 49, width: viewWidth-30, height: 0.5)
+            line2.backgroundColor = UIColor.white.cgColor
+            spacesButton.layer.addSublayer(line2)
+            self.backView?.addSubview(spacesButton)
+//
 //            let teamsButton = UIButton(type: .system)
 //            teamsButton.frame = CGRect(x: 13, y: 260, width: viewWidth-60, height: 50)
 //            
@@ -209,7 +208,6 @@ class UserOptionView: UIView {
         if let type = UserOptionType(rawValue: sender.tag) {
             delegate!.processUserAction(optionType: type)
         }
-
     }
     
     required init?(coder aDecoder: NSCoder) {

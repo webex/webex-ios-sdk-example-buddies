@@ -88,7 +88,7 @@ class MessageTableCell: UITableViewCell {
             self.avatorImageView?.layer.masksToBounds = true
             self.avatorImageView?.layer.borderColor = UIColor.white.cgColor
             self.avatorImageView?.layer.borderWidth = 2.0
-            if(self.message.personId == User.CurrentUser.id || self.message.personEmail?.toString() == User.CurrentUser.email){
+            if(self.message.personId == User.CurrentUser.id){
                 if let url = User.CurrentUser.avatorUrl {
                     self.avatorImageView?.sd_setImage(with: URL(string: url), placeholderImage: User.CurrentUser.placeholder)
                 }
@@ -96,14 +96,22 @@ class MessageTableCell: UITableViewCell {
                     self.avatorImageView?.image = User.CurrentUser.placeholder
                 }
             }else{
-                let personEmail = self.message.personEmail
-                let groupModel = User.CurrentUser[self.message.localGroupId!]
-                let contact = groupModel?.getMemberWithEmail(email: (personEmail?.toString())!)
-                if let url = contact?.avatorUrl {
-                    self.avatorImageView?.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
-                }
-                else {
-                    self.avatorImageView?.image = contact?.placeholder
+                if let spaceModel = User.CurrentUser[self.message.localSpaceId!] {
+                    let contact = spaceModel.contact
+                    if let url = contact?.avatorUrl {
+                        self.avatorImageView?.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
+                    }
+                    else {
+                        self.avatorImageView?.image = contact?.placeholder
+                    }
+                }else {
+                    let image = UIImage.getContactAvatorImage(name: (message.personEmail?.toString())!, size: 70)
+                    if let url = message.avator {
+                        self.avatorImageView?.sd_setImage(with: URL(string: url), placeholderImage: image)
+                    }
+                    else {
+                        self.avatorImageView?.image = image
+                    }
                 }
             }
             self.addSubview(self.avatorImageView!)
@@ -357,16 +365,16 @@ class MessageTableCell: UITableViewCell {
         if(self.message.messageState == MessageState.willSend || self.message.messageState == MessageState.sendFailed){
             self.message.messageState = MessageState.willSend
             self.setUpIndicatorView()
-            if(self.message.roomId == nil || self.message.roomId?.length == 0){
+            if(self.message.spaceId == nil || self.message.spaceId?.length == 0){
                 DispatchQueue.global().async {
-                    let emailStr = User.CurrentUser.loginType == UserLoginType.User ? (self.message.toPersonEmail?.toString())! : self.message.localGroupId
+                    let emailStr = User.CurrentUser.loginType == UserLoginType.User ? (self.message.toPersonEmail?.toString())! : self.message.localSpaceId
                     WebexSDK?.messages.post(personEmail: EmailAddress.fromString(emailStr!)!, text: self.message.text!, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):
-                            let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: self.message.localGroupId!)
-                            roomModel?.roomId = value.roomId!
-                            User.CurrentUser.saveLocalRooms()
+                            let spaceModel = User.CurrentUser[self.message.localSpaceId!]
+                            spaceModel?.spaceId = value.spaceId!
+                            User.CurrentUser.saveSpacesToLocal()
                             self.message.messageId = value.id
                             self.message.messageState = MessageState.idle
                             break
@@ -381,7 +389,7 @@ class MessageTableCell: UITableViewCell {
             }else{
                 DispatchQueue.global().async {
                     self.message.messageState = MessageState.sending
-                    WebexSDK?.messages.post(roomId: self.message.roomId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
+                    WebexSDK?.messages.post(spaceId: self.message.spaceId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):

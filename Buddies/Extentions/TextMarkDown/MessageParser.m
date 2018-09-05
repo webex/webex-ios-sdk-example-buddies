@@ -13,9 +13,9 @@ NSString *const kMessageParserBlockPaddingKey = @"MessageParserBlockPaddingKey";
 NSString *const kConversationMessageMentionTagName = @"spark-mention";
 NSString *const kConversationMessageMentionIDKey = @"data-object-id";
 NSString *const kConversationMessageMentionTypeKey = @"data-object-type";
-NSString *const kConversationMessageMentionGroupTypeKey = @"data-group-type";
+NSString *const kConversationMessageMentionSpaceTypeKey = @"data-group-type";
 NSString *const kConversationMessageMentionTypePersonValue = @"person";
-NSString *const kConversationMessageMentionTypeGroupMentionValue = @"groupMention";
+NSString *const kConversationMessageMentionTypeSpaceMentionValue = @"groupMention";
 
 static NSString *const kHTMLTagLinkName = @"a";
 static NSString *const kHTMLTagBoldName = @"b";
@@ -227,8 +227,8 @@ static NSString *const kHTMLTagPreformattedName = @"pre";
     if ([elementName isEqualToString:kConversationMessageMentionTagName] && attributes[kConversationMessageMentionTypeKey]) {
         if (attributes[kConversationMessageMentionIDKey]) {
             [self.elements addObject:@{ elementName : [attributes dictionaryWithValuesForKeys:@[kConversationMessageMentionIDKey, kConversationMessageMentionTypeKey]] }];
-        } else if (attributes[kConversationMessageMentionGroupTypeKey]) {
-            [self.elements addObject:@{ elementName : [attributes dictionaryWithValuesForKeys:@[kConversationMessageMentionGroupTypeKey, kConversationMessageMentionTypeKey]] }];
+        } else if (attributes[kConversationMessageMentionSpaceTypeKey]) {
+            [self.elements addObject:@{ elementName : [attributes dictionaryWithValuesForKeys:@[kConversationMessageMentionSpaceTypeKey, kConversationMessageMentionTypeKey]] }];
         }
     } else if ([elementName isEqualToString:kHTMLTagLinkName] && attributes[@"href"]) {
         [self.elements addObject:@{ elementName : attributes[@"href"] }];

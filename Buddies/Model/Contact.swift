@@ -55,11 +55,7 @@ class Contact : NSObject, NSCoding {
         self.id = id
         self.name = name
         self.email = email
-        self.placeholder = UIImage(text: name[0]?.uppercased() ?? String.fontAwesomeIcon(name: .userCircleO),
-                                   font: UIFont.safeFont("AvenirNext-Bold", size: 70)!,
-                                   color: UIColor.white,
-                                   backgroundColor: UIColor.MKColor.BlueGrey.P800,
-                                   size: CGSize(90, 90)) ?? UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 90, height: 90))
+        self.placeholder = UIImage.getContactAvatorImage(name: name, size: 70)
         super.init()
     }
     
@@ -69,7 +65,6 @@ class Contact : NSObject, NSCoding {
         }
         self.init(id: id, name: name, email: email)
         self.avatorUrl = person.avatar
-        self.id = person.id!
     }
     
     
@@ -88,13 +83,7 @@ class Contact : NSObject, NSCoding {
         self.name = aDecoder.decodeObject(forKey: "name") as! String
         self.email = aDecoder.decodeObject(forKey: "email") as! String
         self.avatorUrl = aDecoder.decodeObject(forKey: "avatorUrl") as? String
-
         self.isChoosed = false
-        self.placeholder =  UIImage(text: name[0]?.uppercased() ?? String.fontAwesomeIcon(name: .userCircleO),
-                                    font: UIFont.safeFont("AvenirNext-Bold", size: 70)!,
-                                    color: UIColor.white,
-                                    backgroundColor: UIColor.MKColor.BlueGrey.P800,
-                                    size: CGSize(90, 90)) ?? UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 90, height: 90))
+        self.placeholder = UIImage.getContactAvatorImage(name: name, size: 70)
     }
-
 }

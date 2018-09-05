@@ -20,20 +20,19 @@
 
 import UIKit
 
-let roomTableCellHeight = 80
+let spaceTableCellHeight = 80
 
-class RoomListTableCell: UITableViewCell {
+class SpaceListTableCell: UITableViewCell {
 
     // MARK: - UI variabels
-    var roomModel: RoomModel?
+    var spaceModel: SpaceModel
     var backView: UIView?
-    var unreadedLabel: UILabel?
-    
+    var callBtnClicked: (()->())?
     
     // MARK: - UI implementation
-    init(roomModel: RoomModel){
+    init(spaceModel: SpaceModel){
+        self.spaceModel = spaceModel
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
-        self.roomModel = roomModel
         self.setUpSubViews()
     }
     
@@ -42,49 +41,42 @@ class RoomListTableCell: UITableViewCell {
             self.backView?.removeFromSuperview()
         }
         let viewWidth = Constants.Size.screenWidth
-        let viewHeight = roomTableCellHeight
+        let viewHeight = spaceTableCellHeight
         self.backView = UIView(frame: CGRect(0, 0, Int(viewWidth),viewHeight))
         self.backView?.backgroundColor = Constants.Color.Theme.Background
         self.contentView.addSubview(self.backView!)
+        let spaceTitle = spaceModel.title ?? "No Name Space"
+        let spaceLogoImageView = UIImageView(frame: CGRect(x: 15, y: 15, width: Int(spaceTableCellHeight-30), height: Int(spaceTableCellHeight-30)))
+        spaceLogoImageView.image = UIImage.getContactAvatorImage(name: spaceTitle, size: spaceTableCellHeight-30, fontName: "HelveticaNeue-UltraLight", backColor: UIColor.MKColor.BlueGrey.P600)
+        spaceLogoImageView.layer.borderColor = UIColor.white.cgColor
+        spaceLogoImageView.layer.cornerRadius = 25
+        spaceLogoImageView.layer.masksToBounds = true
+        spaceLogoImageView.layer.borderWidth = 2.0
+        self.backView?.addSubview(spaceLogoImageView)
         
-        let titleLabel = UILabel(frame: CGRect(x: 15, y: 10, width: viewWidth-30, height: 50))
-        if let roomtitle = roomModel?.title{
-            titleLabel.text = roomtitle
-        }else{
-            titleLabel.text = "No Name"
-        }
-        titleLabel.textAlignment = .center
+        let titleLabel = UILabel(frame: CGRect(x: 80, y: 10, width: Int(viewWidth-90), height: spaceTableCellHeight-20))
+        titleLabel.text = spaceTitle
+        titleLabel.textAlignment = .left
         titleLabel.textColor = Constants.Color.Theme.DarkControl
-        titleLabel.font = Constants.Font.NavigationBar.Title
+        titleLabel.font = Constants.Font.NavigationBar.BigTitle
         titleLabel.numberOfLines = 2
         self.backView?.addSubview(titleLabel)
         
-        let lastActLabel = UILabel(frame: CGRect(x: 15, y: viewHeight-20, width: Int(viewWidth-40), height: 20))
-        lastActLabel.textAlignment = .right
-        lastActLabel.textColor = Constants.Color.Theme.MediumControl
-        lastActLabel.font = Constants.Font.Home.Comment
-        self.backView?.addSubview(lastActLabel)
-        
+        if spaceModel.unReadedCount > 0 {
+            let unreadedCircle = CAShapeLayer()
+            let path = UIBezierPath()
+            path.addArc(withCenter: CGPoint.init(spaceTableCellHeight-22, 24), radius: 6.0, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
+            unreadedCircle.path = path.cgPath
+            unreadedCircle.fillColor = Constants.Color.Theme.Main.cgColor
+            unreadedCircle.strokeColor = UIColor.white.cgColor
+            unreadedCircle.lineWidth = 1.5
+            self.backView?.layer.addSublayer(unreadedCircle)
+        }
+
         let line = CALayer()
-        line.frame = CGRect(x: 15.0, y: Double(roomTableCellHeight)-1.0, width: Double(viewWidth-30.0), height: 0.5)
+        line.frame = CGRect(x: 15.0, y: Double(spaceTableCellHeight)-1.0, width: Double(viewWidth-30.0), height: 0.5)
         line.backgroundColor = Constants.Color.Theme.MediumControl.cgColor
         self.backView?.layer.addSublayer(line)
-        
-        if let roomGroup = User.CurrentUser[(self.roomModel?.localGroupId)!]{
-            if(roomGroup.unReadedCount > 0){
-                self.unreadedLabel = UILabel(frame: CGRect(Int(viewWidth - 50),viewHeight/2-10,20,20))
-                self.unreadedLabel?.backgroundColor = UIColor.red
-                self.unreadedLabel?.font = Constants.Font.InputBox.Options
-                self.unreadedLabel?.textColor = UIColor.white
-                self.unreadedLabel?.layer.cornerRadius = 10
-                self.unreadedLabel?.layer.masksToBounds = true
-                self.unreadedLabel?.textAlignment = .center
-                self.unreadedLabel?.text = String(describing: (roomGroup.unReadedCount))
-                self.backView?.addSubview(self.unreadedLabel!)
-            }
-        }else{
-            self.unreadedLabel?.removeFromSuperview()
-        }
     }
 
     

@@ -21,16 +21,17 @@
 import UIKit
 import Cartography
 import SDWebImage
+import WebexSDK
 
-class GroupCollcetionViewCell: UICollectionViewCell {
+class SpaceCollcetionViewCell: UICollectionViewCell {
     
     // MARK: - UI variables
     let background: UIView
     let name: UILabel
     let email: UILabel
     let delete: UIButton
-    var groupModel: Group?
-    var groupImageBackView: UIView?
+    var spaceModel: SpaceModel?
+    var spaceImageBackView: UIView?
     var unreadedLabel: UILabel
     
     // MARK: - UI Impelementation
@@ -71,14 +72,15 @@ class GroupCollcetionViewCell: UICollectionViewCell {
         self.delete.isEnabled = false
         self.delete.setShadow(color: Constants.Color.Theme.Shadow, radius: 1, opacity: 0.5, offsetX: 1, offsetY: 1)
 
-        self.unreadedLabel.backgroundColor = UIColor.red
+        self.unreadedLabel.backgroundColor = Constants.Color.Theme.Main
         self.unreadedLabel.font = Constants.Font.InputBox.Options
         self.unreadedLabel.textColor = UIColor.white
-        self.unreadedLabel.layer.cornerRadius = 10
+        self.unreadedLabel.layer.cornerRadius = 9.0
+        self.unreadedLabel.layer.borderColor = UIColor.white.cgColor
+        self.unreadedLabel.layer.borderWidth = 2.0
         self.unreadedLabel.layer.masksToBounds = true
         self.unreadedLabel.isHidden = true
         self.unreadedLabel.textAlignment = .center
-        
         
         self.addSubview(self.name)
         self.addSubview(self.email)
@@ -99,355 +101,81 @@ class GroupCollcetionViewCell: UICollectionViewCell {
             view.height == 20
         }
         constrain(self.delete) { view in
-            view.top == view.superview!.top
-            view.right == view.superview!.right
+            view.top == view.superview!.top + 20
+            view.right == view.superview!.right - 20
             view.width == 20
             view.height == 20
         }
         
         constrain(self.unreadedLabel) { view in
-            view.bottom == view.superview!.bottom/2 + 30
-            view.left == view.superview!.left + 10
-            view.width == 20
-            view.height == 20
+            view.top == view.superview!.top + 10
+            view.right == view.superview!.right/2 + 45
+            view.width == 18
+            view.height == 18
         }
     }
     
-    func setGroup(_ groupModel: Group) {
-        self.groupModel = groupModel
-        self.setUpGroupImageView()
+    func setSpace(_ spaceModel: SpaceModel) {
+        self.spaceModel = spaceModel
+        self.setUpSpaceImageView()
         
-        if(self.groupModel?.groupType == .singleMember){
-            self.name.text = self.groupModel?[0]?.email
-            self.email.text = self.groupModel?.groupName
-            if((self.groupModel?.unReadedCount)! > 0){
+        if(self.spaceModel?.type == .direct){
+            self.name.text = self.spaceModel?.title
+            self.email.text = self.spaceModel?.localSpaceId
+            if((self.spaceModel?.unReadedCount)! > 0){
                 self.unreadedLabel.isHidden = false
-                self.unreadedLabel.text = String(describing: (self.groupModel?.unReadedCount)!)
             }
         }else{
-            self.name.text = self.groupModel?.groupName
+            self.name.text = self.spaceModel?.title
             self.email.text = ""
-            if((self.groupModel?.unReadedCount)! > 0){
+            if((self.spaceModel?.unReadedCount)! > 0){
                 self.unreadedLabel.isHidden = false
-                self.unreadedLabel.text = String(describing: (self.groupModel?.unReadedCount)!)
             }
         }
-
     }
     
-    private func setUpGroupImageView(){
-        self.groupImageBackView = UIView(frame: CGRect.zero)
-        self.background.addSubview(self.groupImageBackView!)
-        constrain(self.groupImageBackView!) { view in
+    private func setUpSpaceImageView(){
+        self.spaceImageBackView = UIView(frame: CGRect.zero)
+        self.background.addSubview(self.spaceImageBackView!)
+        constrain(self.spaceImageBackView!) { view in
             view.centerX == view.superview!.centerX
             view.centerY == view.superview!.centerY - 20
             view.width == view.superview!.width
             view.height == 100
         }
         self.drawShaowPath()
-
-        if(self.groupModel?.grouMemberCount == 1){
-            let imageView = UIImageView(frame: CGRect.zero)
-            imageView.setCorner(45)
-            imageView.layer.borderWidth = 4.0
-            imageView.layer.borderColor = UIColor.white.cgColor
-            self.groupImageBackView?.addSubview(imageView)
-            let contact = self.groupModel?[0]
-            if let url = contact?.avatorUrl {
-                imageView.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
-                imageView.backgroundColor = Constants.Color.Theme.Background
-            }else {
-                imageView.image = contact?.placeholder
-            }
-            constrain(imageView) { view in
-                view.centerX == view.superview!.centerX
-                view.centerY == view.superview!.centerY
-                view.width == 90
-                view.height == 90
-            }
-//            constrain(self.unreadedLabel) { view in
-//                view.top == view.superview!.top + 10
-//                view.left == view.superview!.left + 25
-//                view.width == 20
-//                view.height == 20
-//            }
-            return;
- 
+        let imageView = UIImageView(frame: CGRect.zero)
+        imageView.setCorner(45)
+        imageView.layer.borderWidth = 2.0
+        imageView.layer.borderColor = UIColor.white.cgColor
+        self.spaceImageBackView?.addSubview(imageView)
+        let contact = self.spaceModel?.contact
+        if let url = contact?.avatorUrl {
+            imageView.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
+            imageView.backgroundColor = Constants.Color.Theme.Background
+        }else {
+            imageView.image = contact?.placeholder
         }
-        
-        if(self.groupModel?.grouMemberCount == 2){
-            for index in 0..<2{
-                let imageView = UIImageView(frame: CGRect.zero)
-                imageView.setCorner(40)
-                imageView.layer.borderWidth = 4.0
-                imageView.layer.borderColor = UIColor.white.cgColor
-                self.groupImageBackView?.addSubview(imageView)
-                let contact = self.groupModel?[index]
-                if let url = contact?.avatorUrl {
-                    imageView.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
-                }else {
-                    imageView.image = contact?.placeholder
-                }
-                switch index {
-                case 0:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX - 30
-                        view.centerY == view.superview!.centerY
-                        view.width == 80
-                        view.height == 80
-                    }
-                    break
-                case 1:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX + 30
-                        view.centerY == view.superview!.centerY
-                        view.width == 80
-                        view.height == 80
-                    }
-                    break
-                default:
-                    break
-                }
-            }
-//            constrain(self.unreadedLabel) { view in
-//                view.top == view.superview!.top + 10
-//                view.left == view.superview!.left + 25
-//                view.width == 20
-//                view.height == 20
-//            }
-            return;
+        constrain(imageView) { view in
+            view.centerX == view.superview!.centerX
+            view.centerY == view.superview!.centerY
+            view.width == 90
+            view.height == 90
         }
-        
-        if(self.groupModel?.grouMemberCount == 3){
-            for index in 0..<3{
-                let imageView = UIImageView(frame: CGRect.zero)
-                imageView.backgroundColor = Constants.Color.Theme.Background
-                imageView.setCorner(35)
-                imageView.layer.borderWidth = 4.0
-                imageView.layer.borderColor = UIColor.white.cgColor
-                self.groupImageBackView?.addSubview(imageView)
-                let contact = self.groupModel?[index]
-                if let url = contact?.avatorUrl {
-                    imageView.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
-                }else {
-                    imageView.image = contact?.placeholder
-                }
-                switch index {
-                case 0:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX - 30
-                        view.centerY == view.superview!.centerY + 15
-                        view.width == 70
-                        view.height == 70
-                    }
-                    break
-                case 1:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX + 30
-                        view.centerY == view.superview!.centerY + 15
-                        view.width == 70
-                        view.height == 70
-                    }
-                    break
-                case 2:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX
-                        view.centerY == view.superview!.centerY - 30
-                        view.width == 70
-                        view.height == 70
-                    }
-                    break
-                default:
-                    break
-                }
-            }
-//            constrain(self.unreadedLabel) { view in
-//                view.top == view.superview!.top - 5
-//                view.left == view.superview!.left+30
-//                view.width == 20
-//                view.height == 20
-//            }
-            return;
-        }
-        
-        if(self.groupModel?.grouMemberCount == 4){
-            for index in (0..<4).reversed(){
-                let imageView = UIImageView(frame: CGRect.zero)
-                imageView.backgroundColor = Constants.Color.Theme.Background
-                imageView.setCorner(30)
-                imageView.layer.borderWidth = 4.0
-                imageView.layer.borderColor = UIColor.white.cgColor
-                self.groupImageBackView?.addSubview(imageView)
-                let contact = self.groupModel?[index]
-                if let url = contact?.avatorUrl {
-                    imageView.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
-                }else {
-                    imageView.image = contact?.placeholder
-                }
-                switch index {
-                case 0:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX - 30
-                        view.centerY == view.superview!.centerY + 15
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 1:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX + 30
-                        view.centerY == view.superview!.centerY + 15
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 2:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX - 30
-                        view.centerY == view.superview!.centerY - 30
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 3:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX + 30
-                        view.centerY == view.superview!.centerY - 30
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                default:
-                    break
-                }
-                
-            }
-//            constrain(self.unreadedLabel) { view in
-//                view.top == view.superview!.top - 5
-//                view.left == view.superview!.left
-//                view.width == 20
-//                view.height == 20
-//            }
-            return;
-        }
-        
-        if((self.groupModel?.grouMemberCount)! >= 5){
-            for index in (0..<5).reversed(){
-                let imageView = UIImageView(frame: CGRect.zero)
-                imageView.backgroundColor = Constants.Color.Theme.Background
-                imageView.setCorner(30)
-                imageView.layer.borderWidth = 4.0
-                imageView.layer.borderColor = UIColor.white.cgColor
-                self.groupImageBackView?.addSubview(imageView)
-                if(index == 4 && (self.groupModel?.grouMemberCount)! > 5){
-                    imageView.image = UIImage(cgImage: (UIImage(named:"icon_more")?.cgImage)!, scale: 2.0, orientation: .up)
-                    imageView.contentMode = .center
-                    imageView.backgroundColor = UIColor.MKColor.BlueGrey.P800
-                    imageView.frame.insetBy(dx: 30.0, dy: 10.0);
-                }else{
-                    let contact = self.groupModel?[index]
-                    if let url = contact?.avatorUrl {
-                        imageView.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
-                    }else {
-                        imageView.image = contact?.placeholder
-                    }
-                }
-          
-                switch index {
-                case 0:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX
-                        view.centerY == view.superview!.centerY - 10
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 1:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX + 30
-                        view.centerY == view.superview!.centerY - 35
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 2:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX - 33
-                        view.centerY == view.superview!.centerY - 35
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 3:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX - 33
-                        view.centerY == view.superview!.centerY + 15
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                case 4:
-                    constrain(imageView) { view in
-                        view.centerX == view.superview!.centerX + 30
-                        view.centerY == view.superview!.centerY + 15
-                        view.width == 60
-                        view.height == 60
-                    }
-                    break
-                default:
-                    break
-                }
-            }
-//            constrain(self.unreadedLabel) { view in
-//                view.top == view.superview!.top - 5
-//                view.left == view.superview!.left
-//                view.width == 20
-//                view.height == 20
-//            }
-            return;
-        }
+        return;
     }
     
     // MARK: draw shadow path for cell
     func drawShaowPath(){
-    
         let shadowPath = CGMutablePath()
         let tempPath = UIBezierPath()
-    
-        let memberCount = self.groupModel?.grouMemberCount
-        switch memberCount! {
-        case 1:
-            tempPath.addArc(withCenter: CGPoint(70,50), radius: 45, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            break
-        case 2:
-            tempPath.addArc(withCenter: CGPoint(40,50), radius: 40, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(100,50), radius: 40, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            break
-        case 3:
-            tempPath.addArc(withCenter: CGPoint(70,20), radius: 35, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(40,65), radius: 35, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(100,65), radius: 35, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            break
-        case 4:
-            tempPath.addArc(withCenter: CGPoint(40,65), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(100,65), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(40,20), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(100,20), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            break
-        default:
-            tempPath.addArc(withCenter: CGPoint(70,40), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(100,15), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(37,15), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(37,65), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            tempPath.addArc(withCenter: CGPoint(100,65), radius: 30, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
-            break
-        }
+        tempPath.addArc(withCenter: CGPoint(70,50), radius: 45, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
         shadowPath.addPath(tempPath.cgPath)
-        self.groupImageBackView?.layer.shadowPath = shadowPath
-        self.groupImageBackView?.layer.shadowColor = UIColor.black.cgColor
-        self.groupImageBackView?.layer.shadowOffset = CGSize(1, 1)
-        self.groupImageBackView?.layer.shadowOpacity = 0.5
-        self.groupImageBackView?.layer.shadowRadius = 3.0
+        self.spaceImageBackView?.layer.shadowPath = shadowPath
+        self.spaceImageBackView?.layer.shadowColor = UIColor.black.cgColor
+        self.spaceImageBackView?.layer.shadowOffset = CGSize(1, 1)
+        self.spaceImageBackView?.layer.shadowOpacity = 0.5
+        self.spaceImageBackView?.layer.shadowRadius = 3.0
     }
     
     var onDelete: ((String?) -> Void)? {
@@ -465,15 +193,15 @@ class GroupCollcetionViewCell: UICollectionViewCell {
     
     func reset() {
         self.onDelete = nil
-        self.groupImageBackView?.removeFromSuperview()
-        self.groupImageBackView = nil
+        self.spaceImageBackView?.removeFromSuperview()
+        self.spaceImageBackView = nil
         self.name.text = nil
         self.email.text = nil
         self.unreadedLabel.isHidden = true
     }
     
     @objc private func buttonTap(sender: UIButton) {
-        self.onDelete?(self.groupModel?.groupId)
+        self.onDelete?(self.spaceModel?.localSpaceId)
     }
     
 }

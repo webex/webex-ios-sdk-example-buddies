@@ -20,7 +20,8 @@
 
 import UIKit
 import WebexSDK
-
+import Cartography
+import Photos
 
 /*
  -note: Buddies use MessageModel to wrap message model from remote server
@@ -41,7 +42,7 @@ class BDSMessage: NSObject {
     
     public var personEmail: EmailAddress?
     
-    public var roomId: String?
+    public var spaceId: String?
     
     public var text: String?
     
@@ -59,16 +60,18 @@ class BDSMessage: NSObject {
     
     public var messageState: MessageState?
     
-    public var localGroupId: String? //GroupId contain witch Room it is involved in
+    public var localSpaceId: String? //SpaceId contain witch Space it is involved in
     
     public var mentionList: [Mention]?
     
     public var imageDataDict: Dictionary<String, Data>?
     
+    public var avator: String?
+    
     convenience init?(messageModel: Message) {
         self.init()
-        if let roomId = messageModel.roomId{
-            self.roomId = roomId
+        if let spaceId = messageModel.spaceId{
+            self.spaceId = spaceId
         }
         if let messageId = messageModel.id{
             self.messageId = messageId

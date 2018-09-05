@@ -36,7 +36,7 @@ extension NSAttributedString {
         let lightFont = UIFont(name: "AvenirNext-Medium", size: 14)
 
         let personMentionColor = Constants.Color.Message.PersonMention
-        let groupMentionColor = Constants.Color.Message.GroupMention
+        let spaceMentionColor = Constants.Color.Message.SpaceMention
         let contentColor = Constants.Color.Message.Text
         
         let fontSize = boldFont?.pointSize
@@ -50,7 +50,7 @@ extension NSAttributedString {
                                     NSAttributedStringKey.foregroundColor :personMentionColor] as [NSAttributedStringKey : Any]
         
         let mentionAllAttributes = [NSAttributedStringKey.font : mentionFont!,
-                                    NSAttributedStringKey.foregroundColor :groupMentionColor] as [NSAttributedStringKey : Any]
+                                    NSAttributedStringKey.foregroundColor :spaceMentionColor] as [NSAttributedStringKey : Any]
         
 
         let linkAttritutes = [NSAttributedStringKey.font  : linkFont!,
@@ -119,7 +119,7 @@ extension NSAttributedString {
                 if (valueDict[kConversationMessageMentionTypeKey] == kConversationMessageMentionTypePersonValue) {
                     attributeBody.addAttributes(activeLinkAttributes, range: range)
                 }
-                else if (valueDict[kConversationMessageMentionTypeKey] == kConversationMessageMentionTypeGroupMentionValue){
+                else if (valueDict[kConversationMessageMentionTypeKey] == kConversationMessageMentionTypeSpaceMentionValue){
                     attributeBody.addAttributes(mentionAllAttributes, range: range)
                 }
             }

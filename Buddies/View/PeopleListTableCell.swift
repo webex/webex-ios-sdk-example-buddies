@@ -29,8 +29,7 @@ class PeopleListTableCell: UITableViewCell {
 
     // MARK: - UI variables
     var contactModel: Contact?
-    var membershipModel: Membership?
-    var avatarImageView: UIImageView?
+    var avatorImageView: UIImageView?
     var nameLabel: UILabel?
     var emailLabel: UILabel?
     var backView: UIView?
@@ -91,15 +90,15 @@ class PeopleListTableCell: UITableViewCell {
         self.backView?.layer.addSublayer(line)
     }
     
-    // MARK: - Room Creatation Table cell Implementation
+    // MARK: - Space Creatation Table cell Implementation
     init(searchedContactModel: Contact){
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
         self.contactModel = searchedContactModel
         self.selectionStyle = .none
-        self.setUpRoomCreatePeopleTableSubViews()
+        self.setUpSpaceCreatePeopleTableSubViews()
     }
     
-    func setUpRoomCreatePeopleTableSubViews(){
+    func setUpSpaceCreatePeopleTableSubViews(){
         if(self.backView != nil){
             self.backView?.removeFromSuperview()
         }
@@ -155,10 +154,10 @@ class PeopleListTableCell: UITableViewCell {
         }
     }
     
-    // MARK: - Room Membership Table Implementation
-    init(membershipModel: Membership){
+    // MARK: - Space Membership Table Implementation
+    init(membershipContact: Contact){
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
-        self.membershipModel = membershipModel
+        self.contactModel = membershipContact
         self.setUpMemberShipCellViews()
     }
     
@@ -170,32 +169,27 @@ class PeopleListTableCell: UITableViewCell {
         self.addSubview(self.backView!)
         
         
-        if(self.avatarImageView == nil){
-            self.avatarImageView = UIImageView(frame: CGRect(x: 15, y: 3, width: membershipTableCellHeight-6, height: membershipTableCellHeight-6))
-            self.avatarImageView?.image = UIImage(text: (membershipModel?.personEmail?.toString()[0])!.uppercased(),
-                                            font: UIFont.safeFont("AvenirNext-Bold", size: 70)!,
-                                            color: UIColor.white,
-                                            backgroundColor: UIColor.MKColor.BlueGrey.P800,
-                                            size: CGSize(90, 90)) ?? UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 90, height: 90))
-            self.backView?.addSubview(self.avatarImageView!)
+        if(self.avatorImageView == nil){
+            self.avatorImageView = UIImageView(frame: CGRect(x: 15, y: 3, width: membershipTableCellHeight-6, height: membershipTableCellHeight-6))
+            self.avatorImageView?.image = UIImage.getContactAvatorImage(name: (self.contactModel?.name)!, size: 70)
+            self.backView?.addSubview(self.avatorImageView!)
         }
       
-
         if(self.nameLabel == nil){
             self.nameLabel = UILabel(frame: CGRect(x: 85, y: 10, width: viewWidth-15, height: 20))
-            self.nameLabel?.text = membershipModel?.personEmail?.toString()
+            self.nameLabel?.text = contactModel?.email
             self.nameLabel?.textAlignment = .left
             self.nameLabel?.font = Constants.Font.NavigationBar.Title
             self.nameLabel?.textColor =  Constants.Color.Theme.DarkControl
             self.nameLabel?.font = Constants.Font.Home.Comment
             self.backView?.addSubview(self.nameLabel!)
         }else{
-           self.nameLabel?.text = membershipModel?.personEmail?.toString()
+           self.nameLabel?.text = contactModel?.email
         }
 
         if(self.emailLabel == nil){
             self.emailLabel = UILabel(frame: CGRect(x: 85, y: 30, width: viewWidth-15, height: 20))
-            self.emailLabel?.text = membershipModel?.personEmail?.toString()
+            self.emailLabel?.text = contactModel?.email
             self.emailLabel?.textAlignment = .left
             self.emailLabel?.font = Constants.Font.Home.Title
             self.emailLabel?.textColor = Constants.Color.Theme.MediumControl
@@ -207,49 +201,23 @@ class PeopleListTableCell: UITableViewCell {
             line.backgroundColor = Constants.Color.Theme.MediumControl.cgColor
             self.backView?.layer.addSublayer(line)
         }else{
-            self.emailLabel?.text = membershipModel?.personEmail?.toString()
+            self.emailLabel?.text = contactModel?.email
         }
-
-        DispatchQueue.global().async {
-            WebexSDK?.people.get(personId: (self.membershipModel?.personId)!, completionHandler: { (response: ServiceResponse<Person>) in
-                if let person = response.result.data {
-                    DispatchQueue.main.async {
-                        self.nameLabel?.text = person.displayName
-                        if let avatorUrl = person.avatar{
-                            self.avatarImageView?.sd_setImage(with: URL(string: avatorUrl))
-                        }
-                    }
-                }else if let error = response.result.error {
-                    print(error.localizedDescription)
-                    return
-                }
-               
-            })
+        
+        if let avatorUrl = contactModel?.avatorUrl{
+            self.avatorImageView?.sd_setImage(with: URL(string: avatorUrl))
         }
     }
-    func updateMembershipCell(newMemberShipModel: Membership){
-      
-        if(self.membershipModel?.personId == newMemberShipModel.personId){
+    
+    func updateMembershipCell(membershipContact: Contact){
+        if(self.contactModel?.id == membershipContact.id){
             return;
         }
-        self.nameLabel?.text = membershipModel?.personEmail?.toString()
-        self.emailLabel?.text = membershipModel?.personEmail?.toString()
+        self.nameLabel?.text = membershipContact.name
+        self.emailLabel?.text = membershipContact.email
 
-        DispatchQueue.global().async {
-            WebexSDK?.people.get(personId: (self.membershipModel?.personId)!, completionHandler: { (response: ServiceResponse<Person>) in
-                if let person = response.result.data {
-                    DispatchQueue.main.async {
-                        self.nameLabel?.text = person.displayName
-                        if let avatorUrl = person.avatar{
-                            self.avatarImageView?.sd_setImage(with: URL(string: avatorUrl))
-                        }
-                    }
-                }else if let error = response.result.error {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            })
+        if let avatorUrl = membershipContact.avatorUrl{
+            self.avatorImageView?.sd_setImage(with: URL(string: avatorUrl))
         }
     }
     

@@ -21,10 +21,12 @@
 import UIKit
 
 class BaseViewController: UIViewController {
-
+    
     // MARK: UI variables
     var mainController: MainViewController?
-    
+    var avator: UIImageView?
+    let acitivtyIndicator = KTActivityIndicator()
+
     // MARK: Life Circle
     init(){
        super.init(nibName: nil, bundle: nil)
@@ -45,23 +47,48 @@ class BaseViewController: UIViewController {
         self.navigationController?.navigationBar.backIndicatorImage = backImage
         self.navigationController?.navigationBar.backIndicatorTransitionMaskImage = backImage
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: UIBarButtonItemStyle.plain, target: nil, action: nil)
-
     }
-
+    
     // updateViewController need to overrided by sub view controller
-    func updateViewController(){
-        
-    }
+    func updateViewController(){}
     
     // MARK: other functions
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
 
-    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
 }
+class HomeViewController: BaseViewController {
+    
+    func updateNavigationItems() {
+        if(User.CurrentUser.loginType == .User){
+            avator = User.CurrentUser.avator
+            if let avator = avator {
+                avator.setCorner(Int(avator.frame.height / 2))
+            }
+        }else {
+            avator = UIImageView(frame: CGRect(0, 0, 28, 28))
+            avator?.image = UIImage.fontAwesomeIcon(name: .userCircleO, textColor: UIColor.white, size: CGSize(width: 28, height: 28))
+            self.navigationItem.rightBarButtonItem = nil
+        }
+        if let avator = avator {
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(showUserOptionView))
+            singleTap.numberOfTapsRequired = 1;
+            avator.isUserInteractionEnabled = true
+            avator.addGestureRecognizer(singleTap)
+            let widthConstraint = avator.widthAnchor.constraint(equalToConstant: 28)
+            let heightConstraint = avator.heightAnchor.constraint(equalToConstant: 28)
+            widthConstraint.isActive = true
+            heightConstraint.isActive = true
+            self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: avator)
+        }
+    }
+    
+    @objc private func showUserOptionView() {
+        self.mainController?.slideInUserOptionView()
+    }
+}
+

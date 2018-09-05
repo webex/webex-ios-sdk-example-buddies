@@ -30,6 +30,11 @@ let CallReceptionNotification = "CallReceptionNotification"
 class MainViewController: UIViewController, UserOptionDelegate{
     
     // MARK: - UI variables
+    private var buddiesVC: BuddiesViewController?
+    private var spaceListVC: SpaceListViewController?
+    private var teamVC: TeamListViewController?
+    private var guestLoginVC: GuestSettingViewController?
+
     private let optionViewWidth = Constants.Size.screenWidth/4*3
     private var maskView: UIView?
     
@@ -45,6 +50,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
     fileprivate var incomingCalls  = [Call]()
     fileprivate var newCall : Call?  = nil
     fileprivate var newCallCallee: Contact? = nil
+    public var messageUnreadDict = [String : Bool]()
     
     
     // MARK: - Life circle
@@ -56,11 +62,10 @@ class MainViewController: UIViewController, UserOptionDelegate{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let choosedVC = ContactViewController(mainViewController: self)
-        self.navVC = UINavigationController(rootViewController: choosedVC)
+        self.buddiesVC = BuddiesViewController(mainViewController: self)
+        self.navVC = UINavigationController(rootViewController: self.buddiesVC!)
         self.navVC?.navigationBar.updateAppearance();
         self.view.addSubview((navVC?.view)!)
-        // MARK: remove after 
         self.registerPhone()
     }
     public func registerPhone(){
@@ -73,6 +78,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
                     User.CurrentUser.phoneRegisterd = true
                     (self.navVC?.topViewController as! BaseViewController).updateViewController()
                     self.registerOnComingCall()
+                    self.registerOnReceiveMessage()
                 }else{
                     KTInputBox.alert(title: "Register To Could Fail")
                 }
@@ -105,20 +111,20 @@ class MainViewController: UIViewController, UserOptionDelegate{
     }
     
     @objc public func GuestLogin(){
-        let guestLoginVC = GuestSettingViewController()
-        guestLoginVC.signInSuccessBlock = {
+        self.guestLoginVC = GuestSettingViewController()
+        self.guestLoginVC?.signInSuccessBlock = {
             self.userOptionView?.updateSubViews()
             self.registerWebexWebhook(completionHandler: { (_ res) in })
             self.registerPhone()
         }
-        let loginNavVC = UINavigationController(rootViewController: guestLoginVC)
+        let loginNavVC = UINavigationController(rootViewController: self.guestLoginVC!)
         self.present(loginNavVC, animated: true) {}
     }
     
     
     @objc public func GuestSetting(){
-        let guestLoginVC = GuestSettingViewController()
-        let loginNavVC = UINavigationController(rootViewController: guestLoginVC)
+        self.guestLoginVC = GuestSettingViewController()
+        let loginNavVC = UINavigationController(rootViewController: self.guestLoginVC!)
         self.present(loginNavVC, animated: true) {}
     }
     
@@ -130,19 +136,15 @@ class MainViewController: UIViewController, UserOptionDelegate{
     
     // MARK: - WebexSDK: Webhook Create / Register notification info into web hook server
     func registerWebexWebhook(completionHandler: ((Bool) -> Void)?) {
-        
         if  let voipToken = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_voip_token"),
             let msgToken = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_msg_token") {
-            
             KTActivityIndicator.singleton.show(title: "Connecting....")
-            
-            
-            let threahGroup = DispatchGroup()
+            let threahSpace = DispatchGroup()
             
             /*
              Check if MSG web hook is registered for user
              */
-            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+            DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
                 if(!User.CurrentUser.webHookCreated){
                     WebexSDK?.webhooks.list(completionHandler: { (response: ServiceResponse<[Webhook]>) in
                         switch response.result {
@@ -166,7 +168,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
             /*
              Register notificaiton info into web hook server
              */
-            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+            DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
                 if(!User.CurrentUser.registerdOnWebhookServer){
                     /*
                      register device notification info on webhook server
@@ -187,7 +189,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
                     }
                 }
             }))
-            threahGroup.notify(queue: DispatchQueue.global(), execute: {
+            threahSpace.notify(queue: DispatchQueue.global(), execute: {
                 DispatchQueue.main.async {
                     KTActivityIndicator.singleton.hide()
                 }
@@ -202,10 +204,10 @@ class MainViewController: UIViewController, UserOptionDelegate{
         /* create webhook for notification reception */
         let webHookName = User.CurrentUser.name + "-MSG-WebHook"
         let targetUrl = Constants.Webhook.redirectUrl
-        //                    let filter = Constants.Webhook.filter
+        //let filter = Constants.Webhook.filter
         /*
          Scope of notification, should one of resource below
-         [all, calls, rooms, messages, memberships, callMemberships]
+         [all, calls, spaces, messages, memberships, callMemberships]
          */
         let resource = "messages"
         /*
@@ -227,7 +229,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
         })
     }
     
-    // MARK: - message/call receiption notification dealing code
+    // MARK: - Call Receiption Notification Setting
     static var providerConfiguration: CXProviderConfiguration {
         let providerConfiguration = CXProviderConfiguration(localizedName: "Buddies")
         providerConfiguration.supportsVideo = false
@@ -236,36 +238,6 @@ class MainViewController: UIViewController, UserOptionDelegate{
         providerConfiguration.supportedHandleTypes = [.generic, .phoneNumber, .emailAddress]
         return providerConfiguration
     }
-    
-    func receviMessageNotification(fromEmail: String){
-        if User.CurrentUser.getSingleGroupWithContactEmail(email: fromEmail) != nil{
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: ["from":fromEmail])
-        }else if(User.CurrentUser.loginType == .User){
-            WebexSDK?.people.list(email: EmailAddress.fromString(fromEmail), max: 1) {
-                (response: ServiceResponse<[Person]>) in
-                KTActivityIndicator.singleton.hide()
-                switch response.result {
-                case .success(let value):
-                    for person in value{
-                        if let tempContack = Contact(person: person){
-                            User.CurrentUser.addNewContactAsGroup(contact: tempContack)
-                            if let localGroup = User.CurrentUser.getSingleGroupWithContactId(contactId: tempContack.id){
-                                localGroup.unReadedCount += 1
-                            }
-                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: ["from":fromEmail])
-                        }
-                    }
-                    break
-                case .failure:
-                    break
-                }
-            }
-        }else{
-            return
-        }
-        
-    }
-    
     
     // MARK: - UI Implementation
     private func setUpMaskView(){
@@ -332,7 +304,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
         default:
             break
         }
-        if(optionType == .Buddies || optionType == .Teams || optionType == .Rooms || optionType == .LogOut){
+        if(optionType == .Buddies || optionType == .Teams || optionType == .Spaces || optionType == .LogOut){
             if(currentOptionType == optionType || optionType == .LogOut ){
                 self.dismissUserOptionView()
             }else{
@@ -343,22 +315,11 @@ class MainViewController: UIViewController, UserOptionDelegate{
     }
     
     func updateCurrentViewController(optionType: UserOptionType){
-        
-        var choosedVC: BaseViewController
-        if(optionType == .Buddies){
-            choosedVC = ContactViewController(mainViewController: self)
-        }else if(optionType == .Rooms){
-            choosedVC = RoomListViewController(mainViewController: self)
-        }else if(optionType == .Teams){
-            choosedVC = TeamListViewController(mainViewController: self)
-        }else{
-            choosedVC = ContactViewController(mainViewController: self)
-        }
         if(self.navVC != nil){
             self.navVC?.viewControllers.removeAll()
             self.navVC?.view.removeFromSuperview()
         }
-        self.navVC = UINavigationController(rootViewController: choosedVC)
+        self.navVC = UINavigationController(rootViewController: self.getChoosedVC(optionType: optionType))
         self.navVC?.navigationBar.updateAppearance();
         self.navVC?.view.transform = CGAffineTransform(translationX: self.optionViewWidth, y: 0)
         self.view.addSubview((navVC?.view)!)
@@ -370,8 +331,8 @@ class MainViewController: UIViewController, UserOptionDelegate{
         self.fetchCalleeInfo(from: from)
     }
     public func fetchCalleeInfo(from: String){
-        if let localContact = User.CurrentUser.getSingleGroupWithContactId(contactId: from){
-            self.newCallCallee = localContact[0]!
+        if let localContact = User.CurrentUser[from]{
+            self.newCallCallee = localContact.contact
             self.reportNewIncomingCall(newCall: self.newCall, from: self.newCallCallee)
         }else{
             WebexSDK?.people.get(personId: from) { res in
@@ -383,6 +344,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
         }
     }
     
+    // MARK: - Webex IncomingCall Register
     public func registerOnComingCall(){
         if(User.CurrentUser.phoneRegisterd){
             WebexSDK?.phone.onIncoming = { call in
@@ -412,7 +374,72 @@ class MainViewController: UIViewController, UserOptionDelegate{
         }
     }
     
+    // MARK: - Webex On ReceiveMessage Callback
+    private func registerOnReceiveMessage() {
+        if(User.CurrentUser.phoneRegisterd){
+            WebexSDK?.messages.onEvent = { event in
+                switch event{
+                case .messageReceived(let message):
+                    if User.CurrentUser.loginType == .Guest, let vc = self.guestLoginVC {
+                        vc.receiveNewMessage(message)
+                    }else {
+                        if message.spaceType == SpaceType.direct, let vc = self.buddiesVC {
+                            vc.receiveNewMessage(message)
+                        }
+                        else {
+                            if let vc = self.spaceListVC {
+                                vc.receiveNewMessage(message)
+                            }
+                            else if let spaceId = message.spaceId {
+                                self.messageUnreadDict[spaceId] = true
+                            }
+                        }
+                    }
+                    break
+                case .messageDeleted(_):
+                    break
+                }
+            }
+        }
+    }
+    
     // MARK: - other functions
+    private func getChoosedVC(optionType: UserOptionType) -> BaseViewController {
+        var choosedVC: BaseViewController
+        switch optionType {
+        case .Buddies:
+            if let vc = self.buddiesVC {
+                choosedVC = vc
+            }
+            else {
+                self.buddiesVC = BuddiesViewController(mainViewController: self)
+                choosedVC = self.buddiesVC!
+            }
+            break
+        case .Spaces:
+            if let vc = self.spaceListVC {
+                choosedVC = vc
+            }
+            else {
+                self.spaceListVC = SpaceListViewController(mainViewController: self)
+                choosedVC = self.spaceListVC!
+            }
+            break
+        case .Teams:
+            if let vc = self.teamVC {
+                choosedVC = vc
+            }
+            else {
+                self.teamVC = TeamListViewController(mainViewController: self)
+                choosedVC = self.teamVC!
+            }
+            break
+        default:
+            choosedVC = BuddiesViewController(mainViewController: self)
+            break
+        }
+        return choosedVC
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -470,10 +497,10 @@ extension MainViewController: CXProviderDelegate {
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetGroupCallAction) {
-          print("@@@@@@@@@@@@@@@@@: CXSetGroupCallAction")
+          print("@@@@@@@@@@@@@@@@@: CXSetSpaceCallAction")
     }
     public func provider(_ provider: CXProvider, execute transaction: CXTransaction) -> Bool {
-         print("@@@@@@@@@@@@@@@@@: CXSetGroupCallAction")
+         print("@@@@@@@@@@@@@@@@@: CXSetSpaceCallAction")
         return false
     }
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {

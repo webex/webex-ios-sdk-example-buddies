@@ -20,19 +20,19 @@
 
 import UIKit
 import Cartography
-
+import WebexSDK
 class PopupOptionView : UIView {
     
-    class func buddyOptionPopUp(groupModel: Group, actionColor: UIColor? = nil,  dismissHandler: @escaping (_ action: String) -> Void) {
+    class func buddyOptionPopUp(spaceModel: SpaceModel, actionColor: UIColor? = nil,  dismissHandler: @escaping (_ action: String) -> Void) {
         
         var inputBox = KTInputBox()
-        if(groupModel.groupType == GroupType.singleMember){
-            let contact = groupModel[0]
+        if(spaceModel.type == SpaceType.direct){
+            let contact = spaceModel.contact
             inputBox = KTInputBox(.Default(0), title: contact?.name, message: contact?.email);
             inputBox.customView = PopupOptionView(contact: contact!)
         }else{
-            inputBox = KTInputBox(.Default(0), title:"Group Info", message: groupModel.groupName);
-            inputBox.customView = PopupOptionView(group: groupModel)
+            inputBox = KTInputBox(.Default(0), title:"Space Info", message: spaceModel.title);
+            inputBox.customView = PopupOptionView(spaceModel: spaceModel)
         }
         inputBox.customiseButton = { button, tag in
             if tag == 1 {
@@ -57,14 +57,14 @@ class PopupOptionView : UIView {
         inputBox.show()
     }
     
-    class func show(group: Group, action: String, actionColor: UIColor? = nil,  dismissHandler: @escaping () -> Void) {
+    class func show(spaceModel: SpaceModel, action: String, actionColor: UIColor? = nil,  dismissHandler: @escaping () -> Void) {
         var inputBox = KTInputBox()
-        if(group.groupType == GroupType.singleMember){
-            inputBox = KTInputBox(.Default(0), title: group[0]?.name, message: group[0]?.email);
-            inputBox.customView = PopupOptionView(contact: group[0]!);
+        if(spaceModel.type == SpaceType.direct){
+            inputBox = KTInputBox(.Default(0), title: spaceModel.title, message: spaceModel.localSpaceId);
+            inputBox.customView = PopupOptionView(spaceModel: spaceModel);
         }else{
-            inputBox = KTInputBox(.Default(0), title:"Group Info", message: group.groupName);
-            inputBox.customView = PopupOptionView(group: group);
+            inputBox = KTInputBox(.Default(0), title:"Space Info", message: spaceModel.title);
+            inputBox.customView = PopupOptionView(spaceModel: spaceModel);
         }
         
         inputBox.customiseButton = { button, tag in
@@ -124,37 +124,8 @@ class PopupOptionView : UIView {
         avator.layer.borderColor = Constants.Color.Theme.LightControl.cgColor
         avator.setCorner(25)
     }
-    init(group: Group){
+    init(spaceModel: SpaceModel){
         super.init(frame:CGRect(0, 0, 10, 70))
-        let imageCount = group.grouMemberCount >= 5 ? 5 : group.grouMemberCount
-        for index in (0..<imageCount).reversed() {
-            var avator: UIImageView?
-            if(index == 4 && group.grouMemberCount != 5){
-                avator = UIImageView()
-                avator?.image = UIImage(cgImage: (UIImage(named:"icon_more")?.cgImage)!, scale: 2.0, orientation: .up)
-                avator?.contentMode = .center
-                avator?.backgroundColor = UIColor.MKColor.BlueGrey.P800
-            }else{
-                avator = group[index]?.avator
-                avator?.backgroundColor = UIColor.white
-            }
-            avator?.frame = CGRect(self.center.x - 25, 0, 50, 50)
-            avator?.layer.borderWidth = 2.0
-            avator?.layer.borderColor = Constants.Color.Theme.LightControl.cgColor
-            avator?.setCorner(25)
-            self.addSubview(avator!);
-            constrain(avator!) { view in
-                view.width == 50;
-                view.height == 50;
-                view.center == (view.superview?.center)!
-            }
-            if(index%2 == 0){
-                avator?.transform = CGAffineTransform(translationX: CGFloat(36*(index/2)), y: 0).scaledBy(x: 1 - (CGFloat(Int((index + 1)/2)) * 0.1), y: 1 - (CGFloat(Int((index + 1)/2)) * 0.1))
-            }else{
-                avator?.transform = CGAffineTransform(translationX: CGFloat(-36*(index+1)/2), y: 0).scaledBy(x: 1 - (CGFloat(Int((index + 1)/2)) * 0.1), y: 1 - (CGFloat(Int((index + 1)/2)) * 0.1))
-            }
-        }
     }
-    
     
 }
