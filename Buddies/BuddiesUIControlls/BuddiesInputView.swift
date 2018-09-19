@@ -72,6 +72,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         if let navCon = navController {
             self.navController = navCon
         }
+        
     }
     
     func setUpSubViews(){

@@ -53,13 +53,15 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private(set) var remoteVideoView: MediaRenderView?
     /// localVideoView present local camera video
     private(set) var localVideoView: MediaRenderView?
+    /// screen share present shared screen
+    private(set) var screenShareView: MediaRenderView?
     /// multiStream present render view
     private var activeSpeakerImageView: UIImageView?
     private(set) var multiPersonViews = [MediaRenderView]()
     private(set) var multiPersonBackViews = [UIView]()
     private var multiPersonViewDict: [Int: Bool] = [Int: Bool]()
     var onAuxStreamChanged: ((AuxStreamChangeEvent) -> Void)?
-    var auxStreamAvailable: (() -> MediaRenderView?)?
+    var onAuxStreamAvailable: (() -> MediaRenderView?)?
     var onAuxStreamUnavailable: (() -> MediaRenderView?)?
     
     // MARK: Message Feature UI
@@ -133,7 +135,11 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private func dialCall(isVideo: Bool){
         var mediaOption : MediaOption
         if isVideo{
-            mediaOption = MediaOption.audioVideoScreenShare(video: (self.localVideoView!, self.remoteVideoView!))
+            if #available(iOS 11.2, *) {
+                mediaOption = MediaOption.audioVideoScreenShare(video: (self.localVideoView!, self.remoteVideoView!), screenShare: self.screenShareView!,applicationGroupIdentifier: "group.webexSDK.Buddies")
+            } else {
+                mediaOption = MediaOption.audioVideoScreenShare(video: (self.localVideoView!, self.remoteVideoView!), screenShare: self.screenShareView!)
+            }
         }else{
             mediaOption = MediaOption.audioOnly()
         }
@@ -291,7 +297,12 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 break
             case .receivingScreenShare:
                 break
-            case .remoteSendingScreenShare:
+            case .remoteSendingScreenShare(let isSending):
+                if isSending {
+                    self?.screenShareView?.isHidden = false
+                }else {
+                    self?.screenShareView?.isHidden = true
+                }
                 break
             case .activeSpeakerChangedEvent:
                 self?.updateRemoteViewImageView()
@@ -332,7 +343,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         
         call.multiStreamObserver = self
         
-        self.auxStreamAvailable = {
+        self.onAuxStreamAvailable = {
             if let tag = self.multiPersonViewDict.filter({$0.value == false}).first?.key{
                 self.multiPersonViewDict[tag] = true
                 return self.multiPersonViews[tag-10000]
@@ -354,6 +365,29 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 self.updateMultiRenderViewSize(auxStream)
                 break
             }
+        }
+        
+        /* when the iOS broadcasting status of this *call* have changed */
+        call.oniOSBroadcastingChanged = {
+            event in
+            if #available(iOS 11.2, *) {
+                switch event {
+                case .extensionConnected :
+                    print("share screen start broadcasting")
+                    call.startSharing() {
+                        error in
+                        if error != nil {
+                            print("share screen error:\(String(describing: error))")
+                        }
+                    }
+                    break
+                case .extensionDisconnected:
+                    print("share screen stop broadcasting")
+                    break
+                }
+                
+            }
+            
         }
     }
     
@@ -589,6 +623,15 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             view.top == view.superview!.top + 5
             view.width == view.superview!.width / 4
             view.height == view.superview!.height / 4
+        }
+        
+        self.screenShareView = MediaRenderView(frame: self.view.bounds)
+        self.screenShareView?.backgroundColor = UIColor.clear
+        self.screenShareView?.isHidden = true
+        self.view.addSubview(self.screenShareView!)
+        constrain(self.screenShareView!) { view in
+            view.size == view.superview!.size;
+            view.center == view.superview!.center;
         }
     
         self.statusLable = UILabel()

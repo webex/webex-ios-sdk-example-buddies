@@ -21,6 +21,10 @@
 		105B450C206CE84B00F4599A /* SelectedAssetCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105B450B206CE84B00F4599A /* SelectedAssetCollectionCell.swift */; };
 		105BB1D31F413B61005B740F /* BuddiesInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105BB1D11F413B61005B740F /* BuddiesInputView.swift */; };
 		105BB1D41F413B61005B740F /* BuddiesCallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105BB1D21F413B61005B740F /* BuddiesCallViewController.swift */; };
+		10630FBA214B708F00692998 /* CjoseWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10630FB9214B708F00692998 /* CjoseWrapper.swift */; };
+		1068F7512151F76A000142F3 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1068F7502151F76A000142F3 /* ReplayKit.framework */; };
+		1068F7542151F76A000142F3 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1068F7532151F76A000142F3 /* SampleHandler.swift */; };
+		1068F7582151F76A000142F3 /* BuddiesBroadcastExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 1068F74F2151F76A000142F3 /* BuddiesBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		10DBFF321F3BE35A00209DEC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFEFE1F3BE35A00209DEC /* AppDelegate.swift */; };
 		10DBFF331F3BE35A00209DEC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 10DBFEFF1F3BE35A00209DEC /* Assets.xcassets */; };
 		10DBFF341F3BE35A00209DEC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 10DBFF001F3BE35A00209DEC /* LaunchScreen.storyboard */; };
@@ -58,7 +62,32 @@
 		10DBFF5C1F3BE35A00209DEC /* UserOptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF311F3BE35A00209DEC /* UserOptionView.swift */; };
 		20D2DF1D1F034A8A00902BF7 /* PushKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20D2DF1C1F034A8A00902BF7 /* PushKit.framework */; };
 		2BB575EA30CFE25FC4FF3719 /* Pods_Buddies.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7ADED853B84FB0D9B3F280 /* Pods_Buddies.framework */; };
+		A12054FBCF7C372B12F4B10D /* Pods_BuddiesBroadcastExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5ACCBCC19CFBC558892C16A /* Pods_BuddiesBroadcastExtension.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1068F7562151F76A000142F3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 206281EE1ED1782C007E28F9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1068F74E2151F76A000142F3;
+			remoteInfo = BuddiesBroadcastEctension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1068F75C2151F76A000142F3 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1068F7582151F76A000142F3 /* BuddiesBroadcastExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		10215850210EE18500D93F3A /* SpaceListTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpaceListTableCell.swift; sourceTree = "<group>"; };
@@ -80,6 +109,12 @@
 		105B450B206CE84B00F4599A /* SelectedAssetCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedAssetCollectionCell.swift; sourceTree = "<group>"; };
 		105BB1D11F413B61005B740F /* BuddiesInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuddiesInputView.swift; sourceTree = "<group>"; };
 		105BB1D21F413B61005B740F /* BuddiesCallViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuddiesCallViewController.swift; sourceTree = "<group>"; };
+		10630FB9214B708F00692998 /* CjoseWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CjoseWrapper.swift; sourceTree = "<group>"; };
+		1068F74F2151F76A000142F3 /* BuddiesBroadcastExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BuddiesBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		1068F7502151F76A000142F3 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		1068F7532151F76A000142F3 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		1068F7552151F76A000142F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1068F75D2151F7FC000142F3 /* BuddiesBroadcastExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BuddiesBroadcastExtension.entitlements; sourceTree = "<group>"; };
 		10DBFEFE1F3BE35A00209DEC /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		10DBFEFF1F3BE35A00209DEC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10DBFF011F3BE35A00209DEC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -122,13 +157,28 @@
 		206281F61ED1782C007E28F9 /* Buddies.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Buddies.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		20D2DF1C1F034A8A00902BF7 /* PushKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PushKit.framework; path = System/Library/Frameworks/PushKit.framework; sourceTree = SDKROOT; };
 		3635DB5E2E4334B9F48B2469 /* Pods-Buddies.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Buddies.release.xcconfig"; path = "Pods/Target Support Files/Pods-Buddies/Pods-Buddies.release.xcconfig"; sourceTree = "<group>"; };
+		3D43AAA806FF9C7104CDFDED /* Pods-BuddiesBroadcastExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastExtension.release.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastExtension/Pods-BuddiesBroadcastExtension.release.xcconfig"; sourceTree = "<group>"; };
 		3D7ADED853B84FB0D9B3F280 /* Pods_Buddies.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Buddies.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5847E8EE7B648C63507D7486 /* Pods-BuddiesBroadcastExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastExtension.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastExtension/Pods-BuddiesBroadcastExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		861588002A38F8E4EAC28858 /* Pods-SparkBuddy.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SparkBuddy.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SparkBuddy/Pods-SparkBuddy.debug.xcconfig"; sourceTree = "<group>"; };
+		90338BA2BFEE967543350EF9 /* Pods-BuddiesBroadcastEctension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastEctension.release.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastEctension/Pods-BuddiesBroadcastEctension.release.xcconfig"; sourceTree = "<group>"; };
 		A5EC2689BD1510DCC34D6D20 /* Pods-SparkBuddy.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SparkBuddy.release.xcconfig"; path = "Pods/Target Support Files/Pods-SparkBuddy/Pods-SparkBuddy.release.xcconfig"; sourceTree = "<group>"; };
+		B6C8339EFFEF1C247E840037 /* Pods_BuddiesBroadcastEctension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_BuddiesBroadcastEctension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5ACCBCC19CFBC558892C16A /* Pods_BuddiesBroadcastExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_BuddiesBroadcastExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB15DCABD7192B62340F0D4E /* Pods-Buddies.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Buddies.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Buddies/Pods-Buddies.debug.xcconfig"; sourceTree = "<group>"; };
+		F48F8DAE12C930FC5983776A /* Pods-BuddiesBroadcastEctension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastEctension.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastEctension/Pods-BuddiesBroadcastEctension.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1068F74C2151F76A000142F3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1068F7512151F76A000142F3 /* ReplayKit.framework in Frameworks */,
+				A12054FBCF7C372B12F4B10D /* Pods_BuddiesBroadcastExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		206281F31ED1782C007E28F9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -193,6 +243,16 @@
 			name = CustomizedView;
 			sourceTree = "<group>";
 		};
+		1068F7522151F76A000142F3 /* BuddiesBroadcastExtension */ = {
+			isa = PBXGroup;
+			children = (
+				1068F75D2151F7FC000142F3 /* BuddiesBroadcastExtension.entitlements */,
+				1068F7532151F76A000142F3 /* SampleHandler.swift */,
+				1068F7552151F76A000142F3 /* Info.plist */,
+			);
+			path = BuddiesBroadcastExtension;
+			sourceTree = "<group>";
+		};
 		10DBFEFD1F3BE35A00209DEC /* Buddies */ = {
 			isa = PBXGroup;
 			children = (
@@ -209,6 +269,7 @@
 				10DBFF5D1F3BE3DB00209DEC /* Buddies-Bridging-Header.h */,
 				10DBFEFF1F3BE35A00209DEC /* Assets.xcassets */,
 				10DBFF1C1F3BE35A00209DEC /* Info.plist */,
+				10630FB9214B708F00692998 /* CjoseWrapper.swift */,
 			);
 			path = Buddies;
 			sourceTree = "<group>";
@@ -281,6 +342,7 @@
 			isa = PBXGroup;
 			children = (
 				10DBFEFD1F3BE35A00209DEC /* Buddies */,
+				1068F7522151F76A000142F3 /* BuddiesBroadcastExtension */,
 				206281F71ED1782C007E28F9 /* Products */,
 				632FDA5C99417D1C18348308 /* Pods */,
 				49450FFA59942C9218CB08C7 /* Frameworks */,
@@ -291,6 +353,7 @@
 			isa = PBXGroup;
 			children = (
 				206281F61ED1782C007E28F9 /* Buddies.app */,
+				1068F74F2151F76A000142F3 /* BuddiesBroadcastExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -301,6 +364,9 @@
 				20D2DF1C1F034A8A00902BF7 /* PushKit.framework */,
 				17F849E6B5E2F6A58A89411A /* Pods_SparkBuddy.framework */,
 				3D7ADED853B84FB0D9B3F280 /* Pods_Buddies.framework */,
+				1068F7502151F76A000142F3 /* ReplayKit.framework */,
+				B6C8339EFFEF1C247E840037 /* Pods_BuddiesBroadcastEctension.framework */,
+				D5ACCBCC19CFBC558892C16A /* Pods_BuddiesBroadcastExtension.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -312,6 +378,10 @@
 				A5EC2689BD1510DCC34D6D20 /* Pods-SparkBuddy.release.xcconfig */,
 				DB15DCABD7192B62340F0D4E /* Pods-Buddies.debug.xcconfig */,
 				3635DB5E2E4334B9F48B2469 /* Pods-Buddies.release.xcconfig */,
+				F48F8DAE12C930FC5983776A /* Pods-BuddiesBroadcastEctension.debug.xcconfig */,
+				90338BA2BFEE967543350EF9 /* Pods-BuddiesBroadcastEctension.release.xcconfig */,
+				5847E8EE7B648C63507D7486 /* Pods-BuddiesBroadcastExtension.debug.xcconfig */,
+				3D43AAA806FF9C7104CDFDED /* Pods-BuddiesBroadcastExtension.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -319,6 +389,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1068F74E2151F76A000142F3 /* BuddiesBroadcastExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1068F75B2151F76A000142F3 /* Build configuration list for PBXNativeTarget "BuddiesBroadcastExtension" */;
+			buildPhases = (
+				BF6D14678E2CB305C1EF36BD /* [CP] Check Pods Manifest.lock */,
+				1068F74B2151F76A000142F3 /* Sources */,
+				1068F74C2151F76A000142F3 /* Frameworks */,
+				1068F74D2151F76A000142F3 /* Resources */,
+				057B994F5BEFFB7F105A4B8F /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BuddiesBroadcastExtension;
+			productName = BuddiesBroadcastEctension;
+			productReference = 1068F74F2151F76A000142F3 /* BuddiesBroadcastExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		206281F51ED1782C007E28F9 /* Buddies */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 206282081ED1782C007E28F9 /* Build configuration list for PBXNativeTarget "Buddies" */;
@@ -329,10 +418,12 @@
 				206281F41ED1782C007E28F9 /* Resources */,
 				88C28B9745943D180E3D73D9 /* [CP] Embed Pods Frameworks */,
 				CFD33B0F4F5B5C346BAD1153 /* [CP] Copy Pods Resources */,
+				1068F75C2151F76A000142F3 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				1068F7572151F76A000142F3 /* PBXTargetDependency */,
 			);
 			name = Buddies;
 			productName = Sweetie;
@@ -345,15 +436,28 @@
 		206281EE1ED1782C007E28F9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0830;
+				LastSwiftUpdateCheck = 0940;
 				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "spark-ios-sdk";
 				TargetAttributes = {
+					1068F74E2151F76A000142F3 = {
+						CreatedOnToolsVersion = 9.4.1;
+						DevelopmentTeam = 3K8M2E3L9T;
+						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+						};
+					};
 					206281F51ED1782C007E28F9 = {
 						CreatedOnToolsVersion = 8.3.2;
 						DevelopmentTeam = 3K8M2E3L9T;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
 							com.apple.BackgroundModes = {
 								enabled = 1;
 							};
@@ -378,11 +482,19 @@
 			projectRoot = "";
 			targets = (
 				206281F51ED1782C007E28F9 /* Buddies */,
+				1068F74E2151F76A000142F3 /* BuddiesBroadcastExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		1068F74D2151F76A000142F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		206281F41ED1782C007E28F9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -396,6 +508,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		057B994F5BEFFB7F105A4B8F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BuddiesBroadcastExtension/Pods-BuddiesBroadcastExtension-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		69FFB32404F745C1A67E89F3 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -437,6 +564,7 @@
 				"${PODS_ROOT}/WebexSDK/Frameworks/Seu.framework",
 				"${PODS_ROOT}/WebexSDK/Frameworks/Wme.framework",
 				"${BUILT_PRODUCTS_DIR}/WebexSDK/WebexSDK.framework",
+				"${BUILT_PRODUCTS_DIR}/WebexBroadcastExtensionKit/WebexBroadcastExtensionKit.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -456,10 +584,29 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Seu.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Wme.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebexSDK.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebexBroadcastExtensionKit.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Buddies/Pods-Buddies-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BF6D14678E2CB305C1EF36BD /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-BuddiesBroadcastExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		CFD33B0F4F5B5C346BAD1153 /* [CP] Copy Pods Resources */ = {
@@ -480,6 +627,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1068F74B2151F76A000142F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1068F7542151F76A000142F3 /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		206281F21ED1782C007E28F9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -509,6 +664,7 @@
 				10DBFF371F3BE35A00209DEC /* BuddiesViewController.swift in Sources */,
 				105BB1D31F413B61005B740F /* BuddiesInputView.swift in Sources */,
 				10372ED3208D6DBA000B9300 /* NSAttributedString+Extensions.m in Sources */,
+				10630FBA214B708F00692998 /* CjoseWrapper.swift in Sources */,
 				10DBFF491F3BE35A00209DEC /* UIView+Ext.swift in Sources */,
 				10DBFF391F3BE35A00209DEC /* MainViewController.swift in Sources */,
 				10DBFF3C1F3BE35A00209DEC /* SpaceViewController.swift in Sources */,
@@ -535,6 +691,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		1068F7572151F76A000142F3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1068F74E2151F76A000142F3 /* BuddiesBroadcastExtension */;
+			targetProxy = 1068F7562151F76A000142F3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		10DBFF001F3BE35A00209DEC /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
@@ -555,6 +719,52 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		1068F7592151F76A000142F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5847E8EE7B648C63507D7486 /* Pods-BuddiesBroadcastExtension.debug.xcconfig */;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = BuddiesBroadcastExtension/BuddiesBroadcastExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3K8M2E3L9T;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "$(SRCROOT)/BuddiesBroadcastExtension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.spark-ios-sdk.Sweetie.BuddiesBroadcastExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1068F75A2151F76A000142F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3D43AAA806FF9C7104CDFDED /* Pods-BuddiesBroadcastExtension.release.xcconfig */;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = BuddiesBroadcastExtension/BuddiesBroadcastExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3K8M2E3L9T;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = "$(SRCROOT)/BuddiesBroadcastExtension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.spark-ios-sdk.Sweetie.BuddiesBroadcastExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		206282061ED1782C007E28F9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -670,9 +880,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DB15DCABD7192B62340F0D4E /* Pods-Buddies.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Buddies/Buddies.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3K8M2E3L9T;
@@ -692,9 +903,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 3635DB5E2E4334B9F48B2469 /* Pods-Buddies.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Buddies/Buddies.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3K8M2E3L9T;
@@ -713,6 +925,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1068F75B2151F76A000142F3 /* Build configuration list for PBXNativeTarget "BuddiesBroadcastExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1068F7592151F76A000142F3 /* Debug */,
+				1068F75A2151F76A000142F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		206281F11ED1782C007E28F9 /* Build configuration list for PBXProject "Buddies" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
