@@ -10,7 +10,7 @@ Buddies is a Demo Application that shows how to build a production App with Webe
 <img src="https://github.com/webex/webex-ios-sdk-example-buddies/blob/master/ScreenShots/S_1.jpg" width="22%" height="25%">
 </ul>
 
-1. ScreenShot-1: Calling people/room Page.
+1. ScreenShot-1: Calling people/room page.
 1. ScreenShot-2: Main messaging page.
 1. ScreenShot-3: Application page, contains buddies and groups.
 1. ScreenShot-4: Create group/add buddy Page.
