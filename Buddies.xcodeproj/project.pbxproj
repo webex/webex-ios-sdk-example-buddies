@@ -397,7 +397,6 @@
 				1068F74B2151F76A000142F3 /* Sources */,
 				1068F74C2151F76A000142F3 /* Frameworks */,
 				1068F74D2151F76A000142F3 /* Resources */,
-				057B994F5BEFFB7F105A4B8F /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -417,7 +416,6 @@
 				206281F31ED1782C007E28F9 /* Frameworks */,
 				206281F41ED1782C007E28F9 /* Resources */,
 				88C28B9745943D180E3D73D9 /* [CP] Embed Pods Frameworks */,
-				CFD33B0F4F5B5C346BAD1153 /* [CP] Copy Pods Resources */,
 				1068F75C2151F76A000142F3 /* Embed App Extensions */,
 			);
 			buildRules = (
@@ -473,6 +471,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -508,21 +507,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		057B994F5BEFFB7F105A4B8F /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BuddiesBroadcastExtension/Pods-BuddiesBroadcastExtension-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		69FFB32404F745C1A67E89F3 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -547,7 +531,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Buddies/Pods-Buddies-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Buddies/Pods-Buddies-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/AlamofireObjectMapper/AlamofireObjectMapper.framework",
 				"${BUILT_PRODUCTS_DIR}/Cartography/Cartography.framework",
@@ -588,7 +572,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Buddies/Pods-Buddies-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Buddies/Pods-Buddies-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		BF6D14678E2CB305C1EF36BD /* [CP] Check Pods Manifest.lock */ = {
@@ -607,21 +591,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		CFD33B0F4F5B5C346BAD1153 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Buddies/Pods-Buddies-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

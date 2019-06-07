@@ -67,7 +67,9 @@ extension UIImage {
     class func getContactAvatorImage(name: String, size: Int, fontName: String? = nil, backColor: UIColor? = nil) -> UIImage{
         let font = fontName ?? "AvenirNext-Bold"
         let color = backColor ?? UIColor.MKColor.BlueGrey.P800
-        return UIImage(text: name[0]?.uppercased() ?? String.fontAwesomeIcon(name: .userCircleO),
+
+        
+        return UIImage(text: (name[0] as String?)?.uppercased() ?? String.fontAwesomeIcon(name: .userCircleO),
                        font: UIFont.safeFont(font, size: CGFloat(size))!,
                 color: UIColor.white,
                 backgroundColor: color,
