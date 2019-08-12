@@ -60,7 +60,7 @@ class MessageTableCell: UITableViewCell {
         self.messageSize = CGSize.zero
         self.isUser = (message.personId! == User.CurrentUser.id) || (message.personEmail?.toString() == User.CurrentUser.email)
         super.init(style: .default, reuseIdentifier: "MessageListTableCell")
-        self.messageSize = self.getTextSize(text: (message.text)!)
+        self.messageSize = self.getTextSize(text: message.text ?? "")
         self.selectionStyle = .none
         self.backgroundColor = UIColor.clear
         self.setUpMessageCellSubViews()
@@ -70,7 +70,7 @@ class MessageTableCell: UITableViewCell {
         self.message = message
         self.messageSize = CGSize.zero
         self.isUser = (message.personId == User.CurrentUser.id) || (message.personEmail?.toString() == User.CurrentUser.email)
-        self.messageSize = self.getTextSize(text: (message.text)!)
+        self.messageSize = self.getTextSize(text: message.text ?? "")
         self.selectionStyle = .none
         self.backgroundColor = UIColor.clear
         self.setUpMessageCellSubViews()
