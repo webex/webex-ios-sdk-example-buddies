@@ -160,7 +160,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
             }
         }
         else {
-            if let idx = self.spaceList.index(where: {$0.spaceId == messageModel.spaceId}) {
+            if let idx = self.spaceList.firstIndex(where: {$0.spaceId == messageModel.spaceId}) {
                 spaceList[idx].unReadedCount += 1
             }
             self.tableView?.reloadData()

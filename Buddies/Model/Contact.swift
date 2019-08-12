@@ -44,7 +44,7 @@ class Contact : NSObject, NSCoding {
         else {
             ret.image = self.placeholder
         }
-        ret.contentMode = UIViewContentMode.scaleAspectFill
+        ret.contentMode = UIView.ContentMode.scaleAspectFill
         ret.clipsToBounds = true
         return ret
     }

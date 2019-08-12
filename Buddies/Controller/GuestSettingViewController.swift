@@ -327,9 +327,9 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .right
         let attStringSaySomething1 = NSAttributedString.init(string: "Configuration",
-                                                             attributes: [NSAttributedStringKey.font: Constants.Font.NavigationBar.Button, NSAttributedStringKey.foregroundColor:Constants.Color.Theme.Main,
-                                                                          NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue,
-                                                                          NSAttributedStringKey.paragraphStyle: paragraph])
+                                                             attributes: [NSAttributedString.Key.font: Constants.Font.NavigationBar.Button, NSAttributedString.Key.foregroundColor:Constants.Color.Theme.Main,
+                                                                          NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
+                                                                          NSAttributedString.Key.paragraphStyle: paragraph])
         
         settingBtn.setAttributedTitle(attStringSaySomething1, for: .normal)
         settingBtn.addTarget(self, action: #selector(setUpConfiguartionView), for: .touchUpInside)

@@ -64,8 +64,8 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         self.tableView = tableView
         super.init(frame: frame)
         self.setUpSubViews()
-        NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillAppear(notification:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillDisappear(notification:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillAppear(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillDisappear(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         if let contacts = contacts{
             self.contactList = contacts
         }
@@ -224,6 +224,8 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
             break
         case .denied:
             break
+        @unknown default:
+            break
         }
     }
     
@@ -257,7 +259,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         }
         self.tableView.addGestureRecognizer(tableTap!)
         let userInfo = notification.userInfo!
-        let keyboardFrame:NSValue = userInfo[UIKeyboardFrameEndUserInfoKey] as! NSValue
+        let keyboardFrame:NSValue = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
         let keyboardHeight = keyboardRectangle.height
         let currentTableInsetBottom = self.tableView.contentInset.bottom
@@ -267,7 +269,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
             let keyBoardGap = -(self.transform.ty+keyboardHeight-inputEdgeHeight)
             self.updateUIPositions(keyBoardGap)
             self.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight+inputEdgeHeight)
-            self.tableView.contentInset = UIEdgeInsetsMake(keyboardHeight, 0, currentTableInsetBottom, 0)
+            self.tableView.contentInset = UIEdgeInsets.init(top: keyboardHeight, left: 0, bottom: currentTableInsetBottom, right: 0)
         }
     }
     
@@ -281,7 +283,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
             let keyBoardGap = -(self.transform.ty)
             self.updateUIPositions(keyBoardGap)
             self.transform = CGAffineTransform(translationX: 0, y: 0)
-            self.tableView.contentInset = UIEdgeInsetsMake(0, 0, currentTableInsetBottom, 0)
+            self.tableView.contentInset = UIEdgeInsets.init(top: 0, left: 0, bottom: currentTableInsetBottom, right: 0)
         }
     }
 
@@ -434,7 +436,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     func updateTableViewInset(_ height: CGFloat){
         let currentTableInsetBottom = self.tableView.contentInset.bottom
         let currentTableInsetTop = self.tableView.contentInset.top
-        self.tableView.contentInset = UIEdgeInsetsMake(currentTableInsetTop, 0, currentTableInsetBottom-height, 0)
+        self.tableView.contentInset = UIEdgeInsets.init(top: currentTableInsetTop, left: 0, bottom: currentTableInsetBottom-height, right: 0)
         let contentHeight = self.tableView.contentSize.height
         let contentOffSetY = self.tableView.contentOffset.y
         let delta = contentHeight - contentOffSetY
@@ -603,8 +605,11 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     }
     
     // MARK: - ImagePicker Delegate
-    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]){
-        if let image = info[UIImagePickerControllerOriginalImage] as? UIImage{
+    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]){
+// Local variable inserted by Swift 4.2 migrator.
+let info = convertFromUIImagePickerControllerInfoKeyDictionary(info)
+
+        if let image = info[convertFromUIImagePickerControllerInfoKey(UIImagePickerController.InfoKey.originalImage)] as? UIImage{
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
         }
         picker.dismiss(animated: true) {
@@ -640,4 +645,14 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         self.inputTextView?.removeObserver(self, forKeyPath: "contentSize")
     }
     
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromUIImagePickerControllerInfoKeyDictionary(_ input: [UIImagePickerController.InfoKey: Any]) -> [String: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromUIImagePickerControllerInfoKey(_ input: UIImagePickerController.InfoKey) -> String {
+	return input.rawValue
 }

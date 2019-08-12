@@ -43,25 +43,25 @@ extension NSAttributedString {
         let fontName = boldFont?.fontName
         
         let fontDescriptor = UIFontDescriptor(name: fontName!, size: fontSize!)
-        let atttiDict = [NSAttributedStringKey.font : lightFont!,
-                         NSAttributedStringKey.foregroundColor :contentColor] as [NSAttributedStringKey : Any]
+        let atttiDict = [NSAttributedString.Key.font : lightFont!,
+                         NSAttributedString.Key.foregroundColor :contentColor] as [NSAttributedString.Key : Any]
 
-        let activeLinkAttributes = [NSAttributedStringKey.font : mentionFont!,
-                                    NSAttributedStringKey.foregroundColor :personMentionColor] as [NSAttributedStringKey : Any]
+        let activeLinkAttributes = [NSAttributedString.Key.font : mentionFont!,
+                                    NSAttributedString.Key.foregroundColor :personMentionColor] as [NSAttributedString.Key : Any]
         
-        let mentionAllAttributes = [NSAttributedStringKey.font : mentionFont!,
-                                    NSAttributedStringKey.foregroundColor :spaceMentionColor] as [NSAttributedStringKey : Any]
+        let mentionAllAttributes = [NSAttributedString.Key.font : mentionFont!,
+                                    NSAttributedString.Key.foregroundColor :spaceMentionColor] as [NSAttributedString.Key : Any]
         
 
-        let linkAttritutes = [NSAttributedStringKey.font  : linkFont!,
-                              NSAttributedStringKey.foregroundColor :personMentionColor,
-                              NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue] as [NSAttributedStringKey : Any]
+        let linkAttritutes = [NSAttributedString.Key.font  : linkFont!,
+                              NSAttributedString.Key.foregroundColor :personMentionColor,
+                              NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue] as [NSAttributedString.Key : Any]
         
         attributeBody.beginEditing()
         attributeBody.addAttributes(atttiDict, range: fullRannge)
         
         attributeBody.enumerateAttributes(in: fullRannge, options: .longestEffectiveRangeNotRequired) { (attrs, range, YES) in
-            let keyStr = NSAttributedStringKey.init(kMessageParserStyleKey)
+            let keyStr = NSAttributedString.Key.init(kMessageParserStyleKey)
             if let htmlTraitRaw = attrs[keyStr]{
                 let htmlTraits =  htmlTraitRaw as! UInt
                 var updatedFontSize = fontSize
@@ -94,13 +94,13 @@ extension NSAttributedString {
                     symbolicTraits |= UInt32(FontTrait.italic.rawValue);
                 }
                 if (symbolicTraits != fontDescriptor.symbolicTraits.rawValue || updatedFontSize != fontSize || updatedFontName !=  fontName) {
-                    let finalFontDescriptor = updatedFontDescriptor.withSymbolicTraits(UIFontDescriptorSymbolicTraits(rawValue: symbolicTraits))
+                    let finalFontDescriptor = updatedFontDescriptor.withSymbolicTraits(UIFontDescriptor.SymbolicTraits(rawValue: symbolicTraits))
                     let font = UIFont(descriptor: finalFontDescriptor!, size: updatedFontSize!)
-                    attributeBody.addAttribute(NSAttributedStringKey.font , value: font, range: range)
+                    attributeBody.addAttribute(NSAttributedString.Key.font , value: font, range: range)
                 }
             }
             
-            let attrStr = NSAttributedStringKey.init(kMessageParserBlockPaddingKey)
+            let attrStr = NSAttributedString.Key.init(kMessageParserBlockPaddingKey)
             if let _ = attrs[attrStr] {
                 let paragraph = NSMutableParagraphStyle()
                 paragraph.lineHeightMultiple = 0.1
@@ -110,10 +110,10 @@ extension NSAttributedString {
                         paragraph.headIndent = fontSize! * CGFloat(indetL)
                     }
                 }
-                attributeBody.addAttribute(NSAttributedStringKey.paragraphStyle, value: paragraph, range: range)
+                attributeBody.addAttribute(NSAttributedString.Key.paragraphStyle, value: paragraph, range: range)
             }
             
-            let attrStr1 = NSAttributedStringKey.init(kConversationMessageMentionTagName)
+            let attrStr1 = NSAttributedString.Key.init(kConversationMessageMentionTagName)
             if let value = attrs[attrStr1]{
                 let valueDict = value as! Dictionary<String, String>
                 if (valueDict[kConversationMessageMentionTypeKey] == kConversationMessageMentionTypePersonValue) {
@@ -124,7 +124,7 @@ extension NSAttributedString {
                 }
             }
             
-            let attrStr2 = NSAttributedStringKey.init(kMessageParserLinkKey)
+            let attrStr2 = NSAttributedString.Key.init(kMessageParserLinkKey)
             if let _ = attrs[attrStr2]{
                 attributeBody.addAttributes(linkAttritutes, range: range)
             }

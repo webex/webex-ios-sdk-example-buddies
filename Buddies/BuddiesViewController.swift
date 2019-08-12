@@ -106,7 +106,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
     // MARK: - UI Implementation
     private func setUpSubViews(){
         let layout = UICollectionViewFlowLayout();
-        layout.scrollDirection = UICollectionViewScrollDirection.vertical;
+        layout.scrollDirection = UICollectionView.ScrollDirection.vertical;
         layout.minimumLineSpacing = 30;
         layout.minimumInteritemSpacing = 30;
         layout.sectionInset = UIEdgeInsets(top: 30, left: 30, bottom: 30, right: 30);

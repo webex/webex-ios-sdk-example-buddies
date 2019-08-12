@@ -323,7 +323,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
         self.navVC?.navigationBar.updateAppearance();
         self.navVC?.view.transform = CGAffineTransform(translationX: self.optionViewWidth, y: 0)
         self.view.addSubview((navVC?.view)!)
-        self.view.bringSubview(toFront: self.maskView!)
+        self.view.bringSubviewToFront(self.maskView!)
         self.dismissUserOptionView()
     }
     
@@ -469,7 +469,7 @@ extension MainViewController: CXProviderDelegate {
         let uuid = action.callUUID
         if let contact = self.callers[uuid], let call = self.incomingCalls.filter({$0.uuid.uuidString == uuid.uuidString}).first{
             if self.callViewController == nil {
-                self.callViewController?.removeFromParentViewController()
+                self.callViewController?.removeFromParent()
                 self.callViewController = nil
                 self.callViewController = BuddiesCallViewController(callee: contact, uuid: uuid, callkit: provider)
             }
