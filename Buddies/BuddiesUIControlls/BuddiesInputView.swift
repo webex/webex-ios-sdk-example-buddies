@@ -477,7 +477,15 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         let imageFrame = btn.imageView?.frame
         let space: CGFloat = titleFrame!.origin.x - imageFrame!.origin.x - imageFrame!.size.width
         btn.imageEdgeInsets = UIEdgeInsets(top: attachBtnHeight/4-10, left: attachBtnHeight/4, bottom: attachBtnHeight/4+10, right: attachBtnHeight/4)
-        btn.titleEdgeInsets = UIEdgeInsets(top: attachBtnHeight/4*3-5, left: -space-attachBtnHeight-(titleFrame?.size.width)!, bottom: 0, right: 0)
+        
+        var leftShift:CGFloat = 0.0
+        if #available(iOS 13.0, *) {
+            leftShift = -space-attachBtnHeight/2
+        }else {
+            leftShift = -space-attachBtnHeight-(titleFrame?.size.width)!
+        }
+        btn.titleEdgeInsets = UIEdgeInsets(top: attachBtnHeight/4*3-5, left: leftShift, bottom: 0, right: 0)
+
         return btn
     }
     
