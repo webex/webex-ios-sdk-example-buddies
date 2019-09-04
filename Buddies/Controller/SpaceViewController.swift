@@ -226,7 +226,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     
     func makeCall(isVideo: Bool){
         self.callVC = BuddiesCallViewController(space: self.spaceModel)
-        self.present(self.callVC!, animated: true) {
+        self.presentFullScreen(self.callVC!, animated: true) {
             self.callVC?.beginCall(isVideo: isVideo)
         }
     }

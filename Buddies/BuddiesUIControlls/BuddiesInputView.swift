@@ -196,11 +196,11 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         imagePicker.delegate = self
         imagePicker.sourceType = .camera
         if User.CurrentUser.loginType == .User {
-            UIApplication.shared.keyWindow?.rootViewController?.present(imagePicker, animated: true, completion: nil)
+            UIApplication.shared.keyWindow?.rootViewController?.presentFullScreen(imagePicker, animated: true, completion: nil)
         }
         else {
             if let nav = self.navController {
-                nav.present(imagePicker, animated: true, completion: nil)
+                nav.presentFullScreen(imagePicker, animated: true, completion: nil)
             }
         }
     }

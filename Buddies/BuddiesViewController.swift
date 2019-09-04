@@ -60,7 +60,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
         spaceModel.unReadedCount = 0
         self.collectionView?.reloadData()
         self.callVC = BuddiesCallViewController(space: spaceModel)
-        self.present(self.callVC!, animated: true) {
+        self.presentFullScreen(self.callVC!, animated: true) {
             self.callVC?.beginCall(isVideo: true)
         }
     }
@@ -140,7 +140,7 @@ class BuddiesViewController: HomeViewController, UICollectionViewDataSource, UIC
             }
         }
         let peopleNavVC = UINavigationController(rootViewController: peopleListVC)
-        self.navigationController?.present(peopleNavVC, animated: true, completion: {
+        self.navigationController?.presentFullScreen(peopleNavVC, animated: true, completion: {
             
         })
     }

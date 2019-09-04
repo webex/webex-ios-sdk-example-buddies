@@ -61,7 +61,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         if(space.type == SpaceType.direct){
             let contact = space.contact!
             self.callVC = BuddiesCallViewController(callee: contact)
-            self.present(self.callVC!, animated: true) {
+            self.presentFullScreen(self.callVC!, animated: true) {
                 self.callVC?.beginCall(isVideo: true)
             }
         }

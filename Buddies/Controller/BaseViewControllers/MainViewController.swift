@@ -118,14 +118,14 @@ class MainViewController: UIViewController, UserOptionDelegate{
             self.registerPhone()
         }
         let loginNavVC = UINavigationController(rootViewController: self.guestLoginVC!)
-        self.present(loginNavVC, animated: true) {}
+        self.presentFullScreen(loginNavVC, animated: true) {}
     }
     
     
     @objc public func GuestSetting(){
         self.guestLoginVC = GuestSettingViewController()
         let loginNavVC = UINavigationController(rootViewController: self.guestLoginVC!)
-        self.present(loginNavVC, animated: true) {}
+        self.presentFullScreen(loginNavVC, animated: true) {}
     }
     
     @objc public func userLogOut(){
@@ -475,12 +475,12 @@ extension MainViewController: CXProviderDelegate {
             }
             if let presentedViewController = self.presentedViewController,presentedViewController != self.callViewController {
                 if let presentedNavController = presentedViewController as? UINavigationController {
-                    presentedNavController.topViewController?.present(self.callViewController!, animated: true) {
+                    presentedNavController.topViewController?.presentFullScreen(self.callViewController!, animated: true) {
                         self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
                     }
                 }
                 else {
-                    self.present(self.callViewController!, animated: true) {
+                    self.presentFullScreen(self.callViewController!, animated: true) {
                         self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
                     }
                 }
@@ -489,7 +489,7 @@ extension MainViewController: CXProviderDelegate {
                 self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
             }
             else {
-                self.present(self.callViewController!, animated: true) {
+                self.presentFullScreen(self.callViewController!, animated: true) {
                     self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
                 }
             }

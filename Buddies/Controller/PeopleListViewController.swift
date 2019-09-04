@@ -110,7 +110,7 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
     /* webexSDK callwith contact model */
     public func makeWebexCall(_ contact: Contact){
         let callVC = BuddiesCallViewController(callee: contact)
-        self.present(callVC, animated: true) {
+        self.presentFullScreen(callVC, animated: true) {
             callVC.beginCall(isVideo: true)
         }
     }
@@ -126,7 +126,7 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
             backImageView.isUserInteractionEnabled = true
             backImageView.addGestureRecognizer(singleTap)
             spaceVC!.navigationItem.leftBarButtonItem = UIBarButtonItem.init(customView: backImageView)
-            self.present(roomNavController, animated: true) {}
+            self.presentFullScreen(roomNavController, animated: true) {}
         }
     }
     
