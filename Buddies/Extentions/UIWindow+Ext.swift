@@ -24,9 +24,9 @@ extension UIWindow {
     
     class var main:UIWindow? {
         var top = UIApplication.shared.keyWindow;
-        if top?.windowLevel != UIWindowLevelNormal {
+        if top?.windowLevel != UIWindow.Level.normal {
             for window in UIApplication.shared.windows {
-                if window.windowLevel == UIWindowLevelNormal {
+                if window.windowLevel == UIWindow.Level.normal {
                     top = window;
                     break;
                 }

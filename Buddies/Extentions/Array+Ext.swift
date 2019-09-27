@@ -65,7 +65,7 @@ extension Array {
     
     func indexOfEquatable <U: Equatable> (item: U) -> Int? {
         if item is Element {
-            return self.index(where: { (object) -> Bool in
+            return self.firstIndex(where: { (object) -> Bool in
                 return (object as! U) == item
             })
         }
@@ -159,7 +159,7 @@ extension Array {
                 return self[idx]
             }
             return nil
-            }.flatMap{ $0 }
+            }.compactMap{ $0 }
         return elements
     }
     

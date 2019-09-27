@@ -121,7 +121,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
                     self.messageList.removeAll()
                     for message in value{
                         let tempMessage = BDSMessage(messageModel: message)
-                        if let idx = self.spaceModel.spaceMembers.index(where: {$0.id == message.personId}) {
+                        if let idx = self.spaceModel.spaceMembers.firstIndex(where: {$0.id == message.personId}) {
                             tempMessage?.avator = self.spaceModel.spaceMembers[idx].avatorUrl
                         }
                         tempMessage?.localSpaceId = self.spaceModel.localSpaceId
@@ -193,7 +193,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
                     let name = "Image-" + todaysDate + ".jpg"
                     let destinationPath = documentsPath + "/" + name
                     loadedCount += 1
-                    if let data = UIImageJPEGRepresentation(result!, 1.0){
+                    if let data = result!.jpegData(compressionQuality: 1.0){
                         do{
                             try data.write(to: URL(fileURLWithPath: destinationPath))
                             let thumbFile = LocalFile.Thumbnail(path: destinationPath, mime: "image/png", width: Int((result?.size.width)!), height: Int((result?.size.height)!))
@@ -226,7 +226,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
     
     func makeCall(isVideo: Bool){
         self.callVC = BuddiesCallViewController(space: self.spaceModel)
-        self.present(self.callVC!, animated: true) {
+        self.presentFullScreen(self.callVC!, animated: true) {
             self.callVC?.beginCall(isVideo: isVideo)
         }
     }
@@ -243,7 +243,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
         let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
         msgModel?.localSpaceId = self.spaceModel.localSpaceId
-        if let idx = self.spaceModel.spaceMembers.index(where: {$0.id == message.personId}) {
+        if let idx = self.spaceModel.spaceMembers.firstIndex(where: {$0.id == message.personId}) {
             msgModel?.avator = self.spaceModel.spaceMembers[idx].avatorUrl
         }
         if(msgModel?.text == nil){
@@ -265,7 +265,7 @@ class SpaceViewController: BaseViewController,UITableViewDelegate,UITableViewDat
             self.navigationTitleLabel?.textColor = UIColor.white
             self.navigationTitleLabel?.textAlignment = .center
             self.navigationItem.titleView = self.navigationTitleLabel
-            self.topIndicator = UIActivityIndicatorView(activityIndicatorStyle: .white)
+            self.topIndicator = UIActivityIndicatorView(style: .white)
             self.topIndicator?.hidesWhenStopped = true
             self.navigationTitleLabel?.addSubview(self.topIndicator!)
             self.topIndicator?.center = CGPoint((self.navigationTitleLabel?.center.x)!-20, 15)

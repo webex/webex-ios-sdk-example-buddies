@@ -60,7 +60,7 @@ class MessageTableCell: UITableViewCell {
         self.messageSize = CGSize.zero
         self.isUser = (message.personId! == User.CurrentUser.id) || (message.personEmail?.toString() == User.CurrentUser.email)
         super.init(style: .default, reuseIdentifier: "MessageListTableCell")
-        self.messageSize = self.getTextSize(text: (message.text)!)
+        self.messageSize = self.getTextSize(text: message.text ?? "")
         self.selectionStyle = .none
         self.backgroundColor = UIColor.clear
         self.setUpMessageCellSubViews()
@@ -70,7 +70,7 @@ class MessageTableCell: UITableViewCell {
         self.message = message
         self.messageSize = CGSize.zero
         self.isUser = (message.personId == User.CurrentUser.id) || (message.personEmail?.toString() == User.CurrentUser.email)
-        self.messageSize = self.getTextSize(text: (message.text)!)
+        self.messageSize = self.getTextSize(text: message.text ?? "")
         self.selectionStyle = .none
         self.backgroundColor = UIColor.clear
         self.setUpMessageCellSubViews()
@@ -294,7 +294,7 @@ class MessageTableCell: UITableViewCell {
                             }
                             else{
                                 imageView.backgroundColor = UIColor.lightGray
-                                let indicator = UIActivityIndicatorView(activityIndicatorStyle: .white)
+                                let indicator = UIActivityIndicatorView(style: .white)
                                 indicator.center = CGPoint(x: imageViewWidth/2, y: imageViewHeight/2-10)
                                 indicator.startAnimating()
                                 imageView.addSubview(indicator)
@@ -334,7 +334,7 @@ class MessageTableCell: UITableViewCell {
     
     private func setUpIndicatorView(){
         if(self.messageIndicator == nil){
-            self.messageIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+            self.messageIndicator = UIActivityIndicatorView(style: .gray)
             self.messageIndicator?.color = Constants.Color.Theme.Main
             self.messageIndicator?.hidesWhenStopped = true
             self.addSubview(self.messageIndicator!)
@@ -350,7 +350,7 @@ class MessageTableCell: UITableViewCell {
             let positionX = self.mirrorPosition(CGFloat(avatorHeight + 20) + padding , 0)
             self.messageIndicator?.center = CGPoint(x: positionX, y: CGFloat(avatorHeight/2)+10.0)
         }
-        self.bringSubview(toFront: self.messageIndicator!)
+        self.bringSubviewToFront(self.messageIndicator!)
         if self.message.messageState == MessageState.willSend{
             self.optionBtn?.removeFromSuperview()
             self.messageIndicator?.startAnimating()

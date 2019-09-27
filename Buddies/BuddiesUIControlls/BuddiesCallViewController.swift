@@ -103,7 +103,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.setNeedsStatusBarAppearanceUpdate();
         self.view.backgroundColor = UIColor.MKColor.BlueGrey.P700
         self.setUpSubViews()
-        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground(notification:)), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground(notification:)), name: UIApplication.willEnterForegroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground(notification:)), name: NSNotification.Name(rawValue: CallReceptionNotification), object: nil)
     }
     override func viewWillDisappear(_ animated: Bool) {
@@ -567,7 +567,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
         msgModel?.localSpaceId = self.spaceModel?.localSpaceId
-        if let idx = self.spaceModel?.spaceMembers.index(where: {$0.id == message.personId}) {
+        if let idx = self.spaceModel?.spaceMembers.firstIndex(where: {$0.id == message.personId}) {
             msgModel?.avator = self.spaceModel?.spaceMembers[idx].avatorUrl
         }
         if(msgModel?.text == nil){
@@ -582,7 +582,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     // MARK: - UI Imeplementation
     private func setUpSubViews() {
-        let blur = UIBlurEffect(style: UIBlurEffectStyle.light)
+        let blur = UIBlurEffect(style: UIBlurEffect.Style.light)
         let blurView = UIVisualEffectView(effect: blur)
         self.view.addSubview(blurView)
         constrain(blurView) { view in
@@ -932,7 +932,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                     let name = "Image-" + todaysDate + ".jpg"
                     let destinationPath = documentsPath + "/" + name
                     loadedCount += 1
-                    if let data = UIImageJPEGRepresentation(result!, 1.0){
+                    if let data = result!.jpegData(compressionQuality: 1.0){
                         do{
                             try data.write(to: URL(fileURLWithPath: destinationPath))
                             let thumbFile = LocalFile.Thumbnail(path: destinationPath, mime: "image/png", width: Int((result?.size.width)!), height: Int((result?.size.height)!))

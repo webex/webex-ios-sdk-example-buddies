@@ -103,9 +103,9 @@ class UserOptionView: UIView {
             }
             else {
                 let attStringSaySomething1 = NSAttributedString.init(string: "Configure for guest Indentity Usage",
-                                                                     attributes: [NSAttributedStringKey.font: Constants.Font.NavigationBar.Button, NSAttributedStringKey.foregroundColor:UIColor.white,
-                                                                                  NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue,
-                                                                                  NSAttributedStringKey.paragraphStyle: paragraph])
+                                                                     attributes: [NSAttributedString.Key.font: Constants.Font.NavigationBar.Button, NSAttributedString.Key.foregroundColor:UIColor.white,
+                                                                                  NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
+                                                                                  NSAttributedString.Key.paragraphStyle: paragraph])
                 
                 JWTLoginBtn.setAttributedTitle(attStringSaySomething1, for: .normal)
             }

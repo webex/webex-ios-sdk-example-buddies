@@ -118,14 +118,14 @@ class MainViewController: UIViewController, UserOptionDelegate{
             self.registerPhone()
         }
         let loginNavVC = UINavigationController(rootViewController: self.guestLoginVC!)
-        self.present(loginNavVC, animated: true) {}
+        self.presentFullScreen(loginNavVC, animated: true) {}
     }
     
     
     @objc public func GuestSetting(){
         self.guestLoginVC = GuestSettingViewController()
         let loginNavVC = UINavigationController(rootViewController: self.guestLoginVC!)
-        self.present(loginNavVC, animated: true) {}
+        self.presentFullScreen(loginNavVC, animated: true) {}
     }
     
     @objc public func userLogOut(){
@@ -323,7 +323,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
         self.navVC?.navigationBar.updateAppearance();
         self.navVC?.view.transform = CGAffineTransform(translationX: self.optionViewWidth, y: 0)
         self.view.addSubview((navVC?.view)!)
-        self.view.bringSubview(toFront: self.maskView!)
+        self.view.bringSubviewToFront(self.maskView!)
         self.dismissUserOptionView()
     }
     
@@ -469,18 +469,18 @@ extension MainViewController: CXProviderDelegate {
         let uuid = action.callUUID
         if let contact = self.callers[uuid], let call = self.incomingCalls.filter({$0.uuid.uuidString == uuid.uuidString}).first{
             if self.callViewController == nil {
-                self.callViewController?.removeFromParentViewController()
+                self.callViewController?.removeFromParent()
                 self.callViewController = nil
                 self.callViewController = BuddiesCallViewController(callee: contact, uuid: uuid, callkit: provider)
             }
             if let presentedViewController = self.presentedViewController,presentedViewController != self.callViewController {
                 if let presentedNavController = presentedViewController as? UINavigationController {
-                    presentedNavController.topViewController?.present(self.callViewController!, animated: true) {
+                    presentedNavController.topViewController?.presentFullScreen(self.callViewController!, animated: true) {
                         self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
                     }
                 }
                 else {
-                    self.present(self.callViewController!, animated: true) {
+                    self.presentFullScreen(self.callViewController!, animated: true) {
                         self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
                     }
                 }
@@ -489,7 +489,7 @@ extension MainViewController: CXProviderDelegate {
                 self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
             }
             else {
-                self.present(self.callViewController!, animated: true) {
+                self.presentFullScreen(self.callViewController!, animated: true) {
                     self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
                 }
             }

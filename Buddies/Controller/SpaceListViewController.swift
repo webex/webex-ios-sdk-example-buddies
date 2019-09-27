@@ -106,7 +106,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
     func callSapceAt( _ spaceModel: SpaceModel){
         self.acitivtyIndicator.hide()
         self.callVC = BuddiesCallViewController(space: spaceModel)
-        self.present(self.callVC!, animated: true) {
+        self.presentFullScreen(self.callVC!, animated: true) {
             self.callVC?.beginCall(isVideo: true)
         }
     }
@@ -160,7 +160,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
             }
         }
         else {
-            if let idx = self.spaceList.index(where: {$0.spaceId == messageModel.spaceId}) {
+            if let idx = self.spaceList.firstIndex(where: {$0.spaceId == messageModel.spaceId}) {
                 spaceList[idx].unReadedCount += 1
             }
             self.tableView?.reloadData()
@@ -174,7 +174,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
             self.tableView?.reloadData()
         }
         let peopleNavVC = UINavigationController(rootViewController: peopleListVC)
-        self.navigationController?.present(peopleNavVC, animated: true, completion: {})
+        self.navigationController?.presentFullScreen(peopleNavVC, animated: true, completion: {})
     }
     
     // MARK: UITableView Delegate
@@ -226,7 +226,7 @@ class SpaceListViewController: HomeViewController,UITableViewDelegate,UITableVie
         let action2 = UIAlertAction.init(title: "Cancel", style: .cancel)
         alertView.addAction(action1)
         alertView.addAction(action2)
-        self.present(alertView, animated: true)
+        self.presentFullScreen(alertView, animated: true)
     }
 
     // MARK: - BaseViewController Functions Override

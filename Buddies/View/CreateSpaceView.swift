@@ -140,7 +140,7 @@ class CreateSpaceView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         if(self.addedCollectionView == nil){
             
             let layout = UICollectionViewFlowLayout();
-            layout.scrollDirection = UICollectionViewScrollDirection.horizontal;
+            layout.scrollDirection = UICollectionView.ScrollDirection.horizontal;
             layout.minimumLineSpacing = 3;
             layout.minimumInteritemSpacing = 5;
             layout.sectionInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 10);
@@ -165,8 +165,8 @@ class CreateSpaceView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
             self.segmentControll?.addTarget(self, action: #selector(segmentClicked(sender:)), for: .valueChanged)
             self.segmentControll?.tintColor = Constants.Color.Theme.Main
             
-            let attr = NSDictionary(object: Constants.Font.InputBox.Button, forKey: NSAttributedStringKey.font as NSCopying)
-            self.segmentControll?.setTitleTextAttributes(attr as [NSObject : AnyObject] , for: .normal)
+            let attr = NSDictionary(object: Constants.Font.InputBox.Button, forKey: NSAttributedString.Key.font as NSCopying)
+            self.segmentControll?.setTitleTextAttributes(attr as? [NSAttributedString.Key : Any] , for: .normal)
             
             self.segmentControll?.selectedSegmentIndex = 0
             self.backView?.addSubview(self.segmentControll!)
@@ -186,7 +186,7 @@ class CreateSpaceView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
     func setUpBuddiesCollectionView(){
         if(self.buddiesCollectionView == nil){
             let layout = UICollectionViewFlowLayout();
-            layout.scrollDirection = UICollectionViewScrollDirection.vertical;
+            layout.scrollDirection = UICollectionView.ScrollDirection.vertical;
             layout.minimumLineSpacing = 0;
             layout.minimumInteritemSpacing = 0;
             layout.itemSize = CGSize((backViewWidth-20)/3, (backViewWidth-20)/3);

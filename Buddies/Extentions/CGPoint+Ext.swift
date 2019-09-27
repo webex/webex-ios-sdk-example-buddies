@@ -31,16 +31,19 @@ func KTRadiansToDegrees(_ r:CGFloat) -> CGFloat {
 // MARK: CGPoint
 extension CGPoint {
     public init(_ x: CGFloat, _ y: CGFloat) {
+        self.init()
         self.x = x
         self.y = y
     }
     
     public init(_ x: Int, _ y: Int) {
+        self.init()
         self.x = CGFloat(x);
         self.y = CGFloat(y);
     }
     
     public init(start:CGPoint, end:CGPoint) {
+        self.init()
         self.x = (start.x + end.x) * 0.5;
         self.y = (start.y + end.y) * 0.5;
     }
@@ -128,11 +131,13 @@ extension CGPoint {
 
 extension CGSize {
     public init(_ width: CGFloat, _ height: CGFloat) {
+        self.init()
         self.width = width
         self.height = height
     }
     
     public init(_ width: Int, _ height: Int) {
+        self.init()
         self.width = CGFloat(width);
         self.height = CGFloat(height);
     }
@@ -206,37 +211,44 @@ extension CGRect {
     
     /// Creates a rect with unnamed arguments.
     public init(_ origin: CGPoint, _ size: CGSize) {
+        self.init()
         self.origin = origin
         self.size = size
     }
     
     public init(_ origin: CGPoint, _ width: CGFloat, _ height: CGFloat) {
+        self.init()
         self.origin = origin
         self.size = CGSize(width, height);
     }
     
     public init(_ x: CGFloat, _ y: CGFloat, _ size: CGSize) {
+        self.init()
         self.origin = CGPoint(x, y);
         self.size = size;
     }
     
     public init(_ x: Int, _ y: Int, _ size: CGSize) {
+        self.init()
         self.origin = CGPoint(x, y);
         self.size = size;
     }
     
     /// Creates a rect with unnamed arguments.
     public init(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) {
+        self.init()
         self.origin = CGPoint(x: x, y: y)
         self.size = CGSize(width: width, height: height)
     }
     
     public init(_ x: Int, _ y: Int, _ width: Int, _ height: Int) {
+        self.init()
         self.origin = CGPoint(x: x, y: y)
         self.size = CGSize(width: width, height: height)
     }
     
     public init(_ points:[CGPoint]) {
+        self.init()
         if (points.count == 0) {
             self.origin = CGPoint.zero;
             self.size = CGSize.zero;
@@ -259,10 +271,11 @@ extension CGRect {
     }
     
     public init(_ points:Array<String>) {
+        self.init()
         var bounds = CGRect.zero;
         for i in 0 ..< points.count {
             if let value = points.safeObjectAtIndex(i) {
-                let point = CGPointFromString(value);
+                let point = NSCoder.cgPoint(for: value);
                 if (i == 0) {
                     bounds = CGRect(point, 0, 0);
                 }
@@ -292,6 +305,7 @@ extension CGRect {
     }
     
     public init(point1:CGPoint, point2:CGPoint) {
+        self.init()
         var xLeft = point2.x;
         var xRight = point2.x;
         var yTop = point2.y;
@@ -313,6 +327,7 @@ extension CGRect {
     }
     
     public init(center:CGPoint, size:CGSize) {
+        self.init()
         self.origin = CGPoint(center.x - size.width/2, center.y - size.height/2);
         self.size = size;
     }

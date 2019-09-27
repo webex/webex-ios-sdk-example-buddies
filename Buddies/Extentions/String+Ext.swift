@@ -102,13 +102,13 @@ extension String {
     }
     
     func calculateSringHeight(width: Double, font : UIFont)->CGFloat{
-        let textAttributes = [NSAttributedStringKey.font: font]
+        let textAttributes = [NSAttributedString.Key.font: font]
         let textRect = self.boundingRect(with: CGSize(Int(width), 3000), options: .usesLineFragmentOrigin, attributes: textAttributes, context: nil)
         return textRect.height
     }
     
     func calculateSringSize(width: Double, font : UIFont)->CGSize{
-        let textAttributes = [NSAttributedStringKey.font: font]
+        let textAttributes = [NSAttributedString.Key.font: font]
         var textRect = self.boundingRect(with: CGSize(Int(width), 3000), options: .usesLineFragmentOrigin, attributes: textAttributes, context: nil)
         if(textRect.size.width < 30){
             textRect.size.width = 30

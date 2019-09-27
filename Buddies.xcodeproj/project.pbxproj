@@ -62,6 +62,7 @@
 		10DBFF5C1F3BE35A00209DEC /* UserOptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF311F3BE35A00209DEC /* UserOptionView.swift */; };
 		20D2DF1D1F034A8A00902BF7 /* PushKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20D2DF1C1F034A8A00902BF7 /* PushKit.framework */; };
 		2BB575EA30CFE25FC4FF3719 /* Pods_Buddies.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D7ADED853B84FB0D9B3F280 /* Pods_Buddies.framework */; };
+		84CABAAB231F9DD200EC5F76 /* UIViewController+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CABAAA231F9DD200EC5F76 /* UIViewController+Ext.swift */; };
 		A12054FBCF7C372B12F4B10D /* Pods_BuddiesBroadcastExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5ACCBCC19CFBC558892C16A /* Pods_BuddiesBroadcastExtension.framework */; };
 /* End PBXBuildFile section */
 
@@ -160,6 +161,7 @@
 		3D43AAA806FF9C7104CDFDED /* Pods-BuddiesBroadcastExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastExtension.release.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastExtension/Pods-BuddiesBroadcastExtension.release.xcconfig"; sourceTree = "<group>"; };
 		3D7ADED853B84FB0D9B3F280 /* Pods_Buddies.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Buddies.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5847E8EE7B648C63507D7486 /* Pods-BuddiesBroadcastExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastExtension.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastExtension/Pods-BuddiesBroadcastExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		84CABAAA231F9DD200EC5F76 /* UIViewController+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Ext.swift"; sourceTree = "<group>"; };
 		861588002A38F8E4EAC28858 /* Pods-SparkBuddy.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SparkBuddy.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SparkBuddy/Pods-SparkBuddy.debug.xcconfig"; sourceTree = "<group>"; };
 		90338BA2BFEE967543350EF9 /* Pods-BuddiesBroadcastEctension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BuddiesBroadcastEctension.release.xcconfig"; path = "Pods/Target Support Files/Pods-BuddiesBroadcastEctension/Pods-BuddiesBroadcastEctension.release.xcconfig"; sourceTree = "<group>"; };
 		A5EC2689BD1510DCC34D6D20 /* Pods-SparkBuddy.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SparkBuddy.release.xcconfig"; path = "Pods/Target Support Files/Pods-SparkBuddy/Pods-SparkBuddy.release.xcconfig"; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 				10DBFF191F3BE35A00209DEC /* UILabel+Ext.swift */,
 				10DBFF1A1F3BE35A00209DEC /* UIView+Ext.swift */,
 				10DBFF1B1F3BE35A00209DEC /* UIWindow+Ext.swift */,
+				84CABAAA231F9DD200EC5F76 /* UIViewController+Ext.swift */,
 			);
 			path = Extentions;
 			sourceTree = "<group>";
@@ -435,12 +438,13 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0940;
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = "spark-ios-sdk";
 				TargetAttributes = {
 					1068F74E2151F76A000142F3 = {
 						CreatedOnToolsVersion = 9.4.1;
-						DevelopmentTeam = 3K8M2E3L9T;
+						DevelopmentTeam = 9X38D433RE;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -450,7 +454,8 @@
 					};
 					206281F51ED1782C007E28F9 = {
 						CreatedOnToolsVersion = 8.3.2;
-						DevelopmentTeam = 3K8M2E3L9T;
+						DevelopmentTeam = 9X38D433RE;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -544,9 +549,9 @@
 				"${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework",
 				"${BUILT_PRODUCTS_DIR}/Starscream/Starscream.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
-				"${PODS_ROOT}/WebexSDK/Frameworks/Sbu.framework",
-				"${PODS_ROOT}/WebexSDK/Frameworks/Seu.framework",
-				"${PODS_ROOT}/WebexSDK/Frameworks/Wme.framework",
+				"${PODS_ROOT}/../../webex-ios-sdk/Frameworks/Sbu.framework",
+				"${PODS_ROOT}/../../webex-ios-sdk/Frameworks/Seu.framework",
+				"${PODS_ROOT}/../../webex-ios-sdk/Frameworks/Wme.framework",
 				"${BUILT_PRODUCTS_DIR}/WebexSDK/WebexSDK.framework",
 				"${BUILT_PRODUCTS_DIR}/WebexBroadcastExtensionKit/WebexBroadcastExtensionKit.framework",
 			);
@@ -622,6 +627,7 @@
 				10DBFF501F3BE35A00209DEC /* User.swift in Sources */,
 				10DBFF361F3BE35A00209DEC /* Constants.swift in Sources */,
 				10DBFF3B1F3BE35A00209DEC /* SpaceListViewController.swift in Sources */,
+				84CABAAB231F9DD200EC5F76 /* UIViewController+Ext.swift in Sources */,
 				10DBFF461F3BE35A00209DEC /* UIFont+Ext.swift in Sources */,
 				10372ED2208D6DBA000B9300 /* MessageParser.m in Sources */,
 				105BB1D41F413B61005B740F /* BuddiesCallViewController.swift in Sources */,
@@ -698,15 +704,17 @@
 				CODE_SIGN_ENTITLEMENTS = BuddiesBroadcastExtension/BuddiesBroadcastExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3K8M2E3L9T;
+				CURRENT_PROJECT_VERSION = 2300;
+				DEVELOPMENT_TEAM = 9X38D433RE;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "$(SRCROOT)/BuddiesBroadcastExtension/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.spark-ios-sdk.Sweetie.BuddiesBroadcastExtension";
+				MARKETING_VERSION = 2.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.webex-ios-sdk.Sweetie.BuddiesBroadcastExtension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -721,15 +729,17 @@
 				CODE_SIGN_ENTITLEMENTS = BuddiesBroadcastExtension/BuddiesBroadcastExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3K8M2E3L9T;
+				CURRENT_PROJECT_VERSION = 2300;
+				DEVELOPMENT_TEAM = 9X38D433RE;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "$(SRCROOT)/BuddiesBroadcastExtension/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.spark-ios-sdk.Sweetie.BuddiesBroadcastExtension";
+				MARKETING_VERSION = 2.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.webex-ios-sdk.Sweetie.BuddiesBroadcastExtension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -738,6 +748,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -797,6 +808,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -855,16 +867,18 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3K8M2E3L9T;
+				CURRENT_PROJECT_VERSION = 2300;
+				DEVELOPMENT_TEAM = 9X38D433RE;
 				INFOPLIST_FILE = Buddies/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.spark-ios-sdk.Sweetie";
+				MARKETING_VERSION = 2.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.webex-ios-sdk.Sweetie";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Buddies/Buddies-Bridging-Header.h";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -878,16 +892,18 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3K8M2E3L9T;
+				CURRENT_PROJECT_VERSION = 2300;
+				DEVELOPMENT_TEAM = 9X38D433RE;
 				INFOPLIST_FILE = Buddies/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.spark-ios-sdk.Sweetie";
+				MARKETING_VERSION = 2.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cisco.webex-ios-sdk.Sweetie";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Buddies/Buddies-Bridging-Header.h";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

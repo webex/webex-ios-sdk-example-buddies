@@ -54,7 +54,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     
     public var middleButton:UIButton?
     
-    public var blurEffectStyle: UIBlurEffectStyle?
+    public var blurEffectStyle: UIBlurEffect.Style?
     
     private let textFieldNumber:Int;
     
@@ -74,7 +74,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         let inputBox = KTInputBox(.Alert, title: title, message: message);
         inputBox.customiseButton = { button, tag in
             if tag == 0 {
-                button.setTitle("OK", for: UIControlState.normal)
+                button.setTitle("OK", for: UIControl.State.normal)
             }
             return button;
         }
@@ -124,9 +124,9 @@ class KTInputBox: UIView, UITextFieldDelegate {
             self.alpha = 0.0
             self.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
             window.addSubview(self.converView)
-            window.bringSubview(toFront: self.converView)
+            window.bringSubviewToFront(self.converView)
             window.addSubview(self)
-            window.bringSubview(toFront:self)
+            window.bringSubviewToFront(self)
             
             constrain(self.converView) { view in
                 view.size == view.superview!.size;
@@ -151,8 +151,8 @@ class KTInputBox: UIView, UITextFieldDelegate {
             })
  
             UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-            NotificationCenter.default.addObserver(self, selector: #selector(KTInputBox.keyboardDidShow(notification:)), name: NSNotification.Name.UIKeyboardDidShow, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(KTInputBox.keyboardDidHide(notification:)), name: NSNotification.Name.UIKeyboardDidHide, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(KTInputBox.keyboardDidShow(notification:)), name: UIResponder.keyboardDidShowNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(KTInputBox.keyboardDidHide(notification:)), name: UIResponder.keyboardDidHideNotification, object: nil)
         }
     }
     
@@ -167,8 +167,8 @@ class KTInputBox: UIView, UITextFieldDelegate {
             self.removeFromSuperview()
             self.converView.removeFromSuperview();
             UIDevice.current.endGeneratingDeviceOrientationNotifications()
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardDidShow, object: nil)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardDidHide, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardDidShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardDidHideNotification, object: nil)
         }
     }
     
@@ -176,7 +176,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         self.layer.cornerRadius = 4.0
         self.setShadow(color: Constants.Color.Theme.Shadow, radius: 1, opacity: 0.5, offsetX: 0, offsetY: 1);
         //self.layer.masksToBounds = true
-        self.visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: self.blurEffectStyle ?? UIBlurEffectStyle.extraLight))
+        self.visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: self.blurEffectStyle ?? UIBlurEffect.Style.extraLight))
         
         let padding: CGFloat = 20.0
         let width = width - padding * 2
@@ -259,7 +259,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         self.visualEffectView?.contentView.addSubview(self.buttonBackgroundView)
         
         self.cancelButton = UIButton(frame: CGRect(0, 0, buttonWidth, buttonHeight))
-        self.cancelButton.setTitle("Cancel", for: UIControlState.normal)
+        self.cancelButton.setTitle("Cancel", for: UIControl.State.normal)
         self.cancelButton.addTarget(self, action: #selector(KTInputBox.cancelButtonTapped), for: .touchUpInside)
         self.cancelButton.titleLabel?.font = Constants.Font.InputBox.Button;
         self.cancelButton.setTitleColor((self.blurEffectStyle == .dark) ? UIColor.white : Constants.Color.Theme.DarkControl, for: .normal)
@@ -274,7 +274,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         
         if buttonNum == 3 {
             self.middleButton = UIButton(frame: CGRect(buttonWidth, 0, buttonWidth, buttonHeight))
-            self.middleButton?.setTitle("Middle", for: UIControlState.normal)
+            self.middleButton?.setTitle("Middle", for: UIControl.State.normal)
             self.middleButton?.addTarget(self, action: #selector(KTInputBox.middleButtonTapped(button:)), for: .touchUpInside)
             self.middleButton?.titleLabel?.font = Constants.Font.InputBox.Button;
             self.middleButton?.setTitleColor((self.blurEffectStyle == .dark) ? UIColor.white : Constants.Color.Theme.DarkControl, for: .normal)
@@ -291,7 +291,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         
         if buttonNum >= 2 {
             self.submitButton = UIButton(frame: CGRect(buttonWidth * (buttonNum - 1), 0, buttonWidth, buttonHeight))
-            self.submitButton?.setTitle("OK", for: UIControlState.normal)
+            self.submitButton?.setTitle("OK", for: UIControl.State.normal)
             self.submitButton?.addTarget(self, action: #selector(KTInputBox.submitButtonTapped), for: .touchUpInside)
             self.submitButton?.titleLabel?.font = Constants.Font.InputBox.Button;
             self.submitButton?.setTitleColor((self.blurEffectStyle == .dark) ? UIColor.white : Constants.Color.Theme.DarkControl, for: .normal)
@@ -357,7 +357,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     }
     
     public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if let index = self.elements.index(of: textField) {
+        if let index = self.elements.firstIndex(of: textField) {
             if index < self.textFieldNumber - 1 {
                 if let view = self.elements.safeObjectAtIndex(index + 1) {
                     view.becomeFirstResponder();
@@ -403,7 +403,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     }
     
     private func _keyboardFrame(noti:NSNotification) -> CGRect {
-        if let userInfo = noti.userInfo, let value = userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue {
+        if let userInfo = noti.userInfo, let value = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let keyboardEndFrame = value.cgRectValue;
             let convertedKeyboardEndFrame = self.converView.convert(keyboardEndFrame, from: self.converView.window)
             return convertedKeyboardEndFrame;
@@ -412,9 +412,9 @@ class KTInputBox: UIView, UITextFieldDelegate {
     }
     
     private func _animate(_ noti:NSNotification) {
-        if let userInfo = noti.userInfo, let animationDuration = (userInfo[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue,
-            let rawAnimationCurve = (userInfo[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber)?.uint32Value {
-            let curve = UIViewAnimationOptions(rawValue:UInt(rawAnimationCurve << 15));
+        if let userInfo = noti.userInfo, let animationDuration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue,
+            let rawAnimationCurve = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.uint32Value {
+            let curve = UIView.AnimationOptions(rawValue:UInt(rawAnimationCurve << 15));
             UIView.animate(withDuration: animationDuration, delay: 0.0, options: [.beginFromCurrentState, curve], animations: {
                 self.converView.layoutIfNeeded()
             }, completion: nil)
