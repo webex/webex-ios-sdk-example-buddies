@@ -18,11 +18,8 @@ Buddies is a Demo Application that shows how to build a production App with Webe
 ## How to install
 You can download our Demo App from TestFlight.
 1. Download TestFlight from App Stroe.
-1. Use this portal to register as our external tester:[register portal](https://buddies-ios-beta-user-signup.herokuapp.com/?token=MTcHLfVhezEow4VqgWwPTRfcKZPoXCeT
-)
-1. Check your Email to get your test Redeem code,put this code into TestFlight.
-1. Install Buddies from TestFlight.
-1. Or you could directly dwonload project.
+2. Open the public link (https://testflight.apple.com/join/r0JD3C9v) from your iOS browser.
+3. Start Testing and install Buddies App from TestFlight.
 
 ## Setup
 Here are the steps to setup Xcode project using [CocoaPods](http://cocoapods.org):
