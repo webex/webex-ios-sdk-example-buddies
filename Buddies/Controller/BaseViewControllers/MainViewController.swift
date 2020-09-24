@@ -398,6 +398,8 @@ class MainViewController: UIViewController, UserOptionDelegate{
                     break
                 case .messageDeleted(_):
                     break
+                case .messageUpdated:
+                    break
                 }
             }
         }

@@ -440,6 +440,8 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
                     break
                 case .messageDeleted( _):
                     break
+                case .messageUpdated(messageId: let messageId, type: let type):
+                    break
                 }
             }
         }
