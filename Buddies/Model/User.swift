@@ -143,7 +143,7 @@ class User: Contact {
         /* Remove Message/Voip token from Webhook Server*/
         DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
             if let token = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_voip_token") {
-                Alamofire.request("https://ios-demo-pushnoti-server.herokuapp.com/register/\(token)", method: .delete).response { res in
+                AF.request("https://ios-demo-pushnoti-server.herokuapp.com/register/\(token)", method: .delete).response { res in
                     
                 }
             }
@@ -151,7 +151,7 @@ class User: Contact {
         
         DispatchQueue.global().async(group: threahSpace, execute: DispatchWorkItem(block: {
             if let token = UserDefaults.standard.string(forKey: "com.cisco.webex-ios-sdk.Buddies.data.device_msg_token") {
-                Alamofire.request("https://ios-demo-pushnoti-server.herokuapp.com/register/\(token)", method: .delete).response { res in
+                AF.request("https://ios-demo-pushnoti-server.herokuapp.com/register/\(token)", method: .delete).response { res in
                            
                 }
             }

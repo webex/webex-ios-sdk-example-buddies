@@ -179,7 +179,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
                         "msgToken": msgToken,
                         "personId": User.CurrentUser.id
                     ]
-                    Alamofire.request("https://ios-demo-pushnoti-server.herokuapp.com/register", method: .post, parameters: webHookServiceParamater, encoding: JSONEncoding.default).validate().response { res in
+                    AF.request("https://ios-demo-pushnoti-server.herokuapp.com/register", method: .post, parameters: webHookServiceParamater, encoding: JSONEncoding.default).validate().response { res in
                         KTActivityIndicator.singleton.hide()
                         completionHandler?(true)
                         if(res.error == nil){
