@@ -213,7 +213,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     private func updateRemoteViewImageView() {
-        if let name = self.currentCall?.activeSpeaker?.email{
+        if let name = self.currentCall?.activeSpeaker?.displayName{
             activeSpeakerImageView?.alpha = 1.0
             self.activeSpeakerImageView?.image = UIImage.getContactAvatorImage(name: name, size: spaceTableCellHeight-30, fontName: "HelveticaNeue-UltraLight", backColor: UIColor.MKColor.BlueGrey.P600)
         }
@@ -231,7 +231,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     // MARK: - WebexSDK: call state change processing code here...
     private func callStateChangeCallBacks(call: Call) {
         
-        self.memberShipList = call.memberships.filter({$0.email != User.CurrentUser.email})
+        self.memberShipList = call.memberships.filter({$0.displayName != User.CurrentUser.name})
         self.updateRemoteViewImageView()
 
         /* Callback when remote participant(s) answered and this *call* is connected. */
@@ -318,17 +318,17 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 switch memberShipChangeType {
                     /* This might be triggered when membership joined the call */
                 case .joined(let memberShip):
-                    print("memberShip=======>\(memberShip.email!) joined")
+                    print("memberShip=======>\(memberShip.displayName) joined")
                     self?.updateMemberShipView(membership: memberShip)
                     break
                     /* This might be triggered when membership left the call */
                 case .left(let memberShip):
-                    print("memberShip=======>\(memberShip.email!) left")
+                    print("memberShip=======>\(memberShip.displayName) left")
                     self?.updateMemberShipView(membership: memberShip)
                     break
                     /* This might be triggered when membership declined the call */
                 case .declined(let memberShip):
-                    print("memberShip========> \(memberShip.email!) declined")
+                    print("memberShip========> \(memberShip.displayName) declined")
                     self?.updateMemberShipView(membership: memberShip)
                     break
                 default:
@@ -427,7 +427,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             let idx = renderView.tag - 10000
             let backView = self.multiPersonBackViews[idx]
             backView.subviews.forEach { (subView) in
-                if subView.isKind(of: UIImageView.self), let name = auxVideo?.person?.email{
+                if subView.isKind(of: UIImageView.self), let name = auxVideo?.person?.displayName {
                     (subView as! UIImageView).image = UIImage.getContactAvatorImage(name: name, size: spaceTableCellHeight-30, fontName: "HelveticaNeue-UltraLight", backColor: UIColor.MKColor.BlueGrey.P600)
                 }
             }
@@ -854,8 +854,8 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private func setUpMemberShipView(){
         if(self.isSpaceCall && self.memberShipViewList?.count == 0){
             let sortedMemberList = self.memberShipList?.sorted(by: { (first: CallMembership, second: CallMembership) -> Bool in
-                let r1 = (first.email! == User.CurrentUser.email) ? 1 : 0
-                let r2 = (second.email! == User.CurrentUser.email) ? 1 : 0
+                let r1 = (first.displayName == User.CurrentUser.name) ? 1 : 0
+                let r2 = (second.displayName == User.CurrentUser.name) ? 1 : 0
                 return (r1 > r2)
             })
             self.memberShipList = sortedMemberList
@@ -876,7 +876,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             if let listCount = self.memberShipList?.count{
                 for index in 0..<listCount{
                     let tempMemberShipModel = self.memberShipList?[index]
-                    if tempMemberShipModel?.email == membership.email{
+                    if tempMemberShipModel?.displayName == membership.displayName {
                         self.memberShipViewList?[index].updateMemberShipJoinState(newmemberShip: membership)
                     }
                 }
@@ -1074,7 +1074,7 @@ class CallMemberShipView: UIView{
         self.avatorImageView?.image = UIImage.fontAwesomeIcon(name: .user, textColor: UIColor.white, size: CGSize(width: self.viewHeight, height: self.viewHeight))
         self.addSubview(self.avatorImageView!)
         DispatchQueue.global().async {
-            WebexSDK?.people.list(email: EmailAddress.fromString(self.memberShip.email!) , max: 1) {
+            WebexSDK?.people.list(email: EmailAddress.fromString(self.memberShip.displayName ?? "") , max: 1) {
                 (response: ServiceResponse<[Person]>) in
                 switch response.result {
                 case .success(let value):
